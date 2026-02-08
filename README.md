@@ -114,6 +114,13 @@ HACS → Frontend → mini-graph-card
 | `sensor.nightscout_pump_reservoir` | Инсулин в резервуаре | U |
 | `sensor.nightscout_pump_battery` | Батарея помпы | % |
 | `sensor.nightscout_phone_battery` | Батарея телефона | % |
+| `sensor.nightscout_basal_rate` | Базальная скорость | U/ч |
+| `sensor.nightscout_temp_basal` | Временный базал | U/ч |
+| `sensor.nightscout_last_treatment` | Последнее действие | - |
+| `sensor.nightscout_last_bolus` | Последний болюс | U |
+| `sensor.nightscout_last_carbs` | Последние углеводы | г |
+| `sensor.nightscout_loop_status` | Статус петли | - |
+| `sensor.nightscout_device_status` | Статус устройства | - |
 
 ## Автоматизации
 

@@ -1,93 +1,166 @@
-# Nightscout Dashboard для Home Assistant
-# Скопируйте этот код в раздел Dashboard (Lovelace UI)
+# Nightscout Extended Dashboard для Home Assistant
+# Скопируйте этот код в раздел Dashboard (Lovelace UI) или создайте новую панель
+# Для полной функциональности установите через HACS:
+# - mini-graph-card
+# - layout-card (опционально, для лучшего расположения)
 
 type: vertical-stack
 cards:
-  # Карточка с текущим уровнем глюкозы
-  - type: gauge
-    entity: sensor.blood_sugar
-    name: Уровень глюкозы
-    min: 40
-    max: 400
-    severity:
-      green: 70
-      yellow: 180
-      red: 250
-    needle: true
-
-  # Основная информационная панель
-  - type: entities
-    title: Nightscout - Основные данные
-    show_header_toggle: false
-    entities:
-      - entity: sensor.blood_sugar
-        name: Глюкоза
-        icon: mdi:water
-      - type: section
-        label: Активные вещества
-      - entity: sensor.nightscout_insulin_on_board
-        name: Активный инсулин (IOB)
-        icon: mdi:needle
-      - entity: sensor.nightscout_carbs_on_board
-        name: Активные углеводы (COB)
-        icon: mdi:food-apple
-      - entity: sensor.nightscout_sensitivity_ratio
-        name: Чувствительность
-        icon: mdi:chart-line-variant
-      - type: section
-        label: Расчетный HbA1c
-      - entity: sensor.nightscout_ea1c_24h
-        name: eA1c (24 часа)
-      - entity: sensor.nightscout_ea1c_7d
-        name: eA1c (7 дней)
-      - entity: sensor.nightscout_ea1c_30d
-        name: eA1c (30 дней)
-      - entity: sensor.nightscout_ea1c_90d
-        name: eA1c (90 дней)
-
-  # График изменения глюкозы
-  - type: history-graph
-    title: История глюкозы
-    hours_to_show: 6
-    entities:
-      - entity: sensor.blood_sugar
-
-  # Карточки с IOB и COB
+  # ============ ОСНОВНОЙ ИНДИКАТОР ГЛЮКОЗЫ ============
   - type: horizontal-stack
     cards:
-      - type: sensor
-        entity: sensor.nightscout_insulin_on_board
-        name: IOB
-        graph: line
-        detail: 2
-        hours_to_show: 6
-      - type: sensor
-        entity: sensor.nightscout_carbs_on_board
-        name: COB
-        graph: line
-        detail: 2
-        hours_to_show: 6
+      # Большой gauge индикатор
+      - type: gauge
+        entity: sensor.blood_sugar
+        name: Глюкоза крови
+        min: 40
+        max: 400
+        severity:
+          green: 70
+          yellow: 180
+          red: 250
+        needle: true
+        unit: mg/dL
+        segments:
+          - from: 40
+            color: '#e74c3c'
+          - from: 70
+            color: '#2ecc71'
+          - from: 180
+            color: '#f39c12'
+          - from: 250
+            color: '#e74c3c'
+      
+      # Статус системы
+      - type: entities
+        entities:
+          - entity: sensor.nightscout_loop_status
+            name: Статус петли
+            icon: mdi:sync
+          - entity: sensor.nightscout_device_status
+            name: Устройство
+            icon: mdi:devices
+          - entity: sensor.blood_sugar
+            type: attribute
+            attribute: direction
+            name: Тренд
+          - entity: sensor.blood_sugar
+            type: attribute
+            attribute: delta
+            name: Изменение
 
-  # Диагностическая информация
+  # ============ ОСНОВНАЯ ИНФОРМАЦИОННАЯ ПАНЕЛЬ ============
   - type: entities
-    title: Диагностика
+    title: 📊 Текущие показатели
     show_header_toggle: false
     state_color: true
     entities:
-      - entity: sensor.nightscout_pump_reservoir
-        name: Инсулин в резервуаре
+      - entity: sensor.blood_sugar
+        name: 🩸 Глюкоза
         icon: mdi:water
-      - entity: sensor.nightscout_pump_battery
-        name: Батарея помпы
-        icon: mdi:battery
-      - entity: sensor.nightscout_phone_battery
-        name: Батарея телефона
-        icon: mdi:cellphone-charging
+      - type: divider
+      - type: section
+        label: Активные вещества
+      - entity: sensor.nightscout_insulin_on_board
+        name: 💉 Активный инсулин (IOB)
+        icon: mdi:needle
+      - entity: sensor.nightscout_carbs_on_board
+        name: 🍎 Активные углеводы (COB)
+        icon: mdi:food-apple
+      - entity: sensor.nightscout_sensitivity_ratio
+        name: 📈 Чувствительность
+        icon: mdi:chart-line-variant
+      - type: divider
+      - type: section
+        label: Помпа и базал
+      - entity: sensor.nightscout_basal_rate
+        name: 💧 Базальная скорость
+        icon: mdi:water-pump
+      - entity: sensor.nightscout_temp_basal
+        name: ⏱️ Временный базал
+        icon: mdi:water-pump-off
+      - entity: sensor.nightscout_pump_reservoir
+        name: 🧪 Резервуар помпы
+        icon: mdi:water-outline
 
-  # Карточка с HbA1c графиками
+  # ============ РАСЧЕТНЫЙ HbA1c ============
+  - type: entities
+    title: 📉 Расчетный гликированный гемоглобин (eA1c)
+    show_header_toggle: false
+    state_color: false
+    entities:
+      - entity: sensor.nightscout_ea1c_24h
+        name: eA1c за 24 часа
+        icon: mdi:clock-outline
+        secondary_info: last-changed
+      - entity: sensor.nightscout_ea1c_7d
+        name: eA1c за 7 дней
+        icon: mdi:calendar-week
+        secondary_info: last-changed
+      - entity: sensor.nightscout_ea1c_30d
+        name: eA1c за 30 дней
+        icon: mdi:calendar-month
+        secondary_info: last-changed
+      - entity: sensor.nightscout_ea1c_90d
+        name: eA1c за 90 дней
+        icon: mdi:calendar-range
+        secondary_info: last-changed
+
+  # ============ ГРАФИК ГЛЮКОЗЫ ============
+  - type: history-graph
+    title: 📈 История глюкозы (последние 8 часов)
+    hours_to_show: 8
+    refresh_interval: 60
+    entities:
+      - entity: sensor.blood_sugar
+        name: Глюкоза
+
+  # ============ РАСШИРЕННЫЕ ГРАФИКИ ============
+  - type: horizontal-stack
+    cards:
+      # График IOB
+      - type: custom:mini-graph-card
+        name: Активный инсулин (IOB)
+        icon: mdi:needle
+        entities:
+          - entity: sensor.nightscout_insulin_on_board
+            name: IOB
+            color: '#3498db'
+        hours_to_show: 8
+        points_per_hour: 12
+        line_width: 3
+        animate: true
+        show:
+          graph: line
+          fill: fade
+          points: false
+          legend: false
+      
+      # График COB
+      - type: custom:mini-graph-card
+        name: Активные углеводы (COB)
+        icon: mdi:food-apple
+        entities:
+          - entity: sensor.nightscout_carbs_on_board
+            name: COB
+            color: '#e67e22'
+        hours_to_show: 8
+        points_per_hour: 12
+        line_width: 3
+        animate: true
+        show:
+          graph: line
+          fill: fade
+          points: false
+          legend: false
+
+  # ============ ТРЕНД eA1c ============
   - type: custom:mini-graph-card
-    name: Тренд eA1c
+    name: 📊 Динамика eA1c по периодам
     icon: mdi:chart-line
+    height: 150
+    hours_to_show: 168
+    group: true
     entities:
       - entity: sensor.nightscout_ea1c_24h
         name: 24ч
@@ -98,6 +171,102 @@ cards:
       - entity: sensor.nightscout_ea1c_30d
         name: 30д
         color: '#2ecc71'
+      - entity: sensor.nightscout_ea1c_90d
+        name: 90д
+        color: '#3498db'
+    show:
+      graph: line
+      fill: false
+      points: true
+      legend: true
+      labels: true
+
+  # ============ ДИАГНОСТИКА И БАТАРЕИ ============
+  - type: horizontal-stack
+    cards:
+      # Батарея помпы
+      - type: entity
+        entity: sensor.nightscout_pump_battery
+        name: Батарея помпы
+        icon: mdi:battery
+        state_color: true
+      
+      # Батарея телефона
+      - type: entity
+        entity: sensor.nightscout_phone_battery
+        name: Батарея телефона
+        icon: mdi:cellphone-charging
+        state_color: true
+      
+      # Резервуар
+      - type: entity
+        entity: sensor.nightscout_pump_reservoir
+        name: Резервуар
+        icon: mdi:water-outline
+
+  # ============ ПОСЛЕДНИЕ ДЕЙСТВИЯ ============
+  - type: entities
+    title: 📝 История действий
+    show_header_toggle: false
+    entities:
+      - entity: sensor.nightscout_last_treatment
+        name: Последнее действие
+        icon: mdi:clipboard-text-clock
+      - entity: sensor.nightscout_last_bolus
+        name: Последний болюс
+        icon: mdi:needle
+      - entity: sensor.nightscout_last_carbs
+        name: Последние углеводы
+        icon: mdi:food
+
+  # ============ СТАТИСТИКА Time in Range ============
+  - type: custom:mini-graph-card
+    name: 🎯 Статистика диапазонов (за 24ч)
+    icon: mdi:chart-donut
+    hours_to_show: 24
+    points_per_hour: 12
+    entities:
+      - entity: sensor.blood_sugar
+        name: Глюкоза
+        color: '#2ecc71'
+    show:
+      graph: line
+      fill: fade
+      points: false
+      state: true
+      legend: true
+    color_thresholds:
+      - value: 70
+        color: '#e74c3c'
+      - value: 70
+        color: '#2ecc71'
+      - value: 180
+        color: '#f39c12'
+      - value: 250
+        color: '#e74c3c'
+
+  # ============ КОМПАКТНАЯ КАРТОЧКА ОБЗОРА ============
+  - type: glance
+    title: 🔍 Быстрый обзор
+    columns: 4
+    show_state: true
+    entities:
+      - entity: sensor.blood_sugar
+        name: Глюкоза
+      - entity: sensor.nightscout_insulin_on_board
+        name: IOB
+      - entity: sensor.nightscout_carbs_on_board
+        name: COB
+      - entity: sensor.nightscout_ea1c_7d
+        name: eA1c 7д
+      - entity: sensor.nightscout_pump_reservoir
+        name: Резервуар
+      - entity: sensor.nightscout_pump_battery
+        name: Помпа
+      - entity: sensor.nightscout_phone_battery
+        name: Телефон
+      - entity: sensor.nightscout_sensitivity_ratio
+        name: Чувств-ть
       - entity: sensor.nightscout_ea1c_90d
         name: 90д
         color: '#3498db'

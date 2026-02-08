@@ -1,7 +1,8 @@
 {
   "name": "Nightscout Extended",
+  "content_in_root": false,
   "render_readme": true,
-  "domains": ["nightscout"],
-  "iot_class": "cloud_polling",
-  "homeassistant": "2023.1.0"
+  "homeassistant": "2023.1.0",
+  "domains": ["sensor"],
+  "iot_class": "Cloud Polling"
 }

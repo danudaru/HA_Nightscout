@@ -1,0 +1,21 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Настройка Nightscout Extended",
+        "description": "Настройте подключение к серверу Nightscout",
+        "data": {
+          "url": "URL Nightscout",
+          "api_key": "API ключ (необязательно)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Не удалось подключиться к Nightscout. Проверьте URL и попробуйте снова.",
+      "unknown": "Произошла неожиданная ошибка"
+    },
+    "abort": {
+      "already_configured": "Этот сервер Nightscout уже настроен"
+    }
+  }
+}
