@@ -50,36 +50,19 @@ views:
 
       - type: horizontal-stack
         cards:
-          - type: gauge
-            entity: sensor.tir_24h
-            name: Time in Range
-            unit: '%'
-            min: 0
-            max: 100
-            severity:
-              green: 70
-              yellow: 50
-              red: 0
-          - type: gauge
-            entity: sensor.tbr_24h
-            name: Ниже целевого
-            unit: '%'
-            min: 0
-            max: 100
-            severity:
-              green: 0
-              yellow: 4
-              red: 10
-          - type: gauge
-            entity: sensor.tar_24h
-            name: Выше целевого
-            unit: '%'
-            min: 0
-            max: 100
-            severity:
-              green: 0
-              yellow: 25
-              red: 50
+          - type: entities
+            title: Time in Range (24ч)
+            state_color: true
+            entities:
+              - entity: sensor.nightscout_tir_24h
+                name: В целевом диапазоне
+                icon: mdi:target
+              - entity: sensor.nightscout_tbr_24h
+                name: Ниже целевого
+                icon: mdi:arrow-down-bold
+              - entity: sensor.nightscout_tar_24h
+                name: Выше целевого
+                icon: mdi:arrow-up-bold
 
   # ============================================================================
   # ВКЛАДКА 2: ПОДРОБНАЯ ИНФОРМАЦИЯ И ГРАФИКИ
@@ -132,11 +115,11 @@ views:
     path: nightscout-statistics
     icon: mdi:chart-box
     cards:
-      - type: vertical-stack
+      - type: custom:expander-card
+        title: Статистика за 24 часа
+        expanded: true
+        clear: true
         cards:
-          - type: markdown
-            content: |
-              ## Статистика за 24 часа
           - type: horizontal-stack
             cards:
               - type: entity
@@ -151,37 +134,39 @@ views:
                 entity: sensor.nightscout_ea1c_24h
                 name: eA1c
                 icon: mdi:percent
+          - type: horizontal-stack
+            cards:
+              - type: entity
+                entity: sensor.stdev_24h
+                name: Стд. отклонение
+                icon: mdi:chart-bell-curve
+              - type: entity
+                entity: sensor.cv_24h
+                name: Коэфф. вариации
+                icon: mdi:percent
+              - type: entity
+                entity: sensor.gvi_24h
+                name: GVI
+                icon: mdi:chart-scatter-plot
+          - type: entities
+            title: Time in Range (24ч)
+            state_color: true
+            entities:
+              - entity: sensor.nightscout_tir_24h
+                name: В целевом диапазоне
+                icon: mdi:target
+              - entity: sensor.nightscout_tbr_24h
+                name: Ниже целевого
+                icon: mdi:arrow-down-bold
+              - entity: sensor.nightscout_tar_24h
+                name: Выше целевого
+                icon: mdi:arrow-up-bold
 
-      - type: horizontal-stack
+      - type: custom:expander-card
+        title: Статистика за 7 дней
+        expanded: false
+        clear: true
         cards:
-          - type: entity
-            entity: sensor.stdev_24h
-            name: Стд. отклонение
-            icon: mdi:chart-bell-curve
-          - type: entity
-            entity: sensor.cv_24h
-            name: Коэфф. вариации
-            icon: mdi:percent
-          - type: entity
-            entity: sensor.gvi_24h
-            name: GVI
-            icon: mdi:chart-scatter-plot
-
-      - type: entities
-        title: Time in Range (24ч)
-        entities:
-          - entity: sensor.tir_24h
-            name: В целевом диапазоне
-          - entity: sensor.tbr_24h
-            name: Ниже целевого
-          - entity: sensor.tar_24h
-            name: Выше целевого
-
-      - type: vertical-stack
-        cards:
-          - type: markdown
-            content: |
-              ## Статистика за 7 дней
           - type: horizontal-stack
             cards:
               - type: entity
@@ -193,34 +178,36 @@ views:
               - type: entity
                 entity: sensor.nightscout_ea1c_7d
                 name: eA1c
+          - type: horizontal-stack
+            cards:
+              - type: entity
+                entity: sensor.stdev_7d
+                name: Стд. отклонение
+              - type: entity
+                entity: sensor.cv_7d
+                name: Коэфф. вариации
+              - type: entity
+                entity: sensor.gvi_7d
+                name: GVI
+          - type: entities
+            title: Time in Range (7д)
+            state_color: true
+            entities:
+              - entity: sensor.nightscout_tir_7d
+                name: В целевом диапазоне
+                icon: mdi:target
+              - entity: sensor.nightscout_tbr_7d
+                name: Ниже целевого
+                icon: mdi:arrow-down-bold
+              - entity: sensor.nightscout_tar_7d
+                name: Выше целевого
+                icon: mdi:arrow-up-bold
 
-      - type: horizontal-stack
+      - type: custom:expander-card
+        title: Статистика за 30 дней
+        expanded: false
+        clear: true
         cards:
-          - type: entity
-            entity: sensor.stdev_7d
-            name: Стд. отклонение
-          - type: entity
-            entity: sensor.cv_7d
-            name: Коэфф. вариации
-          - type: entity
-            entity: sensor.gvi_7d
-            name: GVI
-
-      - type: entities
-        title: Time in Range (7д)
-        entities:
-          - entity: sensor.tir_7d
-            name: В целевом диапазоне
-          - entity: sensor.tbr_7d
-            name: Ниже целевого
-          - entity: sensor.tar_7d
-            name: Выше целевого
-
-      - type: vertical-stack
-        cards:
-          - type: markdown
-            content: |
-              ## Статистика за 30 дней
           - type: horizontal-stack
             cards:
               - type: entity
@@ -232,34 +219,36 @@ views:
               - type: entity
                 entity: sensor.nightscout_ea1c_30d
                 name: eA1c
+          - type: horizontal-stack
+            cards:
+              - type: entity
+                entity: sensor.stdev_30d
+                name: Стд. отклонение
+              - type: entity
+                entity: sensor.cv_30d
+                name: Коэфф. вариации
+              - type: entity
+                entity: sensor.gvi_30d
+                name: GVI
+          - type: entities
+            title: Time in Range (30д)
+            state_color: true
+            entities:
+              - entity: sensor.nightscout_tir_30d
+                name: В целевом диапазоне
+                icon: mdi:target
+              - entity: sensor.nightscout_tbr_30d
+                name: Ниже целевого
+                icon: mdi:arrow-down-bold
+              - entity: sensor.nightscout_tar_30d
+                name: Выше целевого
+                icon: mdi:arrow-up-bold
 
-      - type: horizontal-stack
+      - type: custom:expander-card
+        title: Статистика за 90 дней (3 месяца)
+        expanded: false
+        clear: true
         cards:
-          - type: entity
-            entity: sensor.stdev_30d
-            name: Стд. отклонение
-          - type: entity
-            entity: sensor.cv_30d
-            name: Коэфф. вариации
-          - type: entity
-            entity: sensor.gvi_30d
-            name: GVI
-
-      - type: entities
-        title: Time in Range (30д)
-        entities:
-          - entity: sensor.tir_30d
-            name: В целевом диапазоне
-          - entity: sensor.tbr_30d
-            name: Ниже целевого
-          - entity: sensor.tar_30d
-            name: Выше целевого
-
-      - type: vertical-stack
-        cards:
-          - type: markdown
-            content: |
-              ## Статистика за 90 дней (3 месяца)
           - type: horizontal-stack
             cards:
               - type: entity
@@ -271,28 +260,30 @@ views:
               - type: entity
                 entity: sensor.nightscout_ea1c_90d
                 name: eA1c
-
-      - type: horizontal-stack
-        cards:
-          - type: entity
-            entity: sensor.stdev_90d
-            name: Стд. отклонение
-          - type: entity
-            entity: sensor.cv_90d
-            name: Коэфф. вариации
-          - type: entity
-            entity: sensor.gvi_90d
-            name: GVI
-
-      - type: entities
-        title: Time in Range (90д)
-        entities:
-          - entity: sensor.tir_90d
-            name: В целевом диапазоне
-          - entity: sensor.tbr_90d
-            name: Ниже целевого
-          - entity: sensor.tar_90d
-            name: Выше целевого
+          - type: horizontal-stack
+            cards:
+              - type: entity
+                entity: sensor.stdev_90d
+                name: Стд. отклонение
+              - type: entity
+                entity: sensor.cv_90d
+                name: Коэфф. вариации
+              - type: entity
+                entity: sensor.gvi_90d
+                name: GVI
+          - type: entities
+            title: Time in Range (90д)
+            state_color: true
+            entities:
+              - entity: sensor.nightscout_tir_90d
+                name: В целевом диапазоне
+                icon: mdi:target
+              - entity: sensor.nightscout_tbr_90d
+                name: Ниже целевого
+                icon: mdi:arrow-down-bold
+              - entity: sensor.nightscout_tar_90d
+                name: Выше целевого
+                icon: mdi:arrow-up-bold
 
   # ============================================================================
   # ВКЛАДКА 4: ДИАГНОСТИКА И СТАТУС СИСТЕМЫ
@@ -368,3 +359,4 @@ views:
 # - mini-graph-card (для красивых графиков)
 # - apexcharts-card (для сложных диаграмм)
 # - mushroom cards (для современного UI)
+# - expander-card (для сворачиваемых разделов статистики)
