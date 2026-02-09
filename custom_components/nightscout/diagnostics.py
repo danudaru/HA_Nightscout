@@ -194,27 +194,78 @@ class NightscoutDiagnostics:
         try:
             status = await self.api.get_status()
             if not status:
-                return {"error": "Could not get status"}
+                return {
+                    "size_mb": None,
+                    "status": "error",
+                    "error": "Could not get status",
+                    "message": "Unable to connect to Nightscout",
+                }
 
             # Try to get database size from status
-            # Note: This may not be available in all Nightscout installations
-            settings = status.get("settings", {})
+            # Note: Actual size may not be available in all Nightscout installations
+            # We estimate based on entries count
+            entries_count = self._estimate_entries_count(status)
+            
+            # Rough estimation: ~0.5 KB per entry average
+            estimated_size_mb = None
+            if entries_count:
+                estimated_size_mb = round((entries_count * 0.5) / 1024, 1)
             
             # Database size warning thresholds (in MB)
             limit = 500
             warning_threshold = limit * 0.7  # 70%
             critical_threshold = limit * 0.9  # 90%
 
+            # Determine status
+            db_status = "ok"
+            message = "Database size monitoring active"
+            
+            if estimated_size_mb is not None:
+                if estimated_size_mb >= critical_threshold:
+                    db_status = "critical"
+                    message = f"Database size critical: {estimated_size_mb} MB"
+                elif estimated_size_mb >= warning_threshold:
+                    db_status = "warning"
+                    message = f"Database size warning: {estimated_size_mb} MB"
+                else:
+                    message = f"Database size: {estimated_size_mb} MB"
+
             return {
+                "size_mb": estimated_size_mb,
                 "limit_mb": limit,
                 "warning_threshold_mb": warning_threshold,
                 "critical_threshold_mb": critical_threshold,
-                "status": "monitoring",
-                "message": "Database size monitoring active",
+                "status": db_status,
+                "message": message,
             }
         except Exception as err:
             _LOGGER.error("Database size check failed: %s", err)
-            return {"error": str(err)}
+            return {
+                "size_mb": None,
+                "status": "error",
+                "error": str(err),
+                "message": "Database size check failed",
+            }
+    
+    def _estimate_entries_count(self, status: dict[str, Any]) -> int | None:
+        """Estimate number of entries from Nightscout status.
+        
+        Args:
+            status: Status dictionary from Nightscout API
+            
+        Returns:
+            Estimated number of entries or None
+        """
+        try:
+            # Try to get from settings if available
+            settings = status.get("settings", {})
+            
+            # Some Nightscout instances may provide this info
+            # For now, return None as this requires additional API call
+            # Future: could call /api/v1/entries.json?count=0 to get total
+            return None
+        except Exception:
+            return None
 
     async def get_full_diagnostics(self) -> dict[str, Any]:
         """Get comprehensive diagnostics.

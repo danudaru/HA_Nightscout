@@ -157,24 +157,29 @@ class DatabaseSizeSensor(DiagnosticSensorBase):
         self._last_status = None
 
     @property
-    def native_value(self) -> str:
+    def native_value(self) -> float | None:
         """Return the state of the sensor."""
         if self._last_status:
-            return self._last_status.get("status", "unknown")
-        return "monitoring"
+            # Return numeric size in MB, or None if not available
+            return self._last_status.get("size_mb")
+        return None
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return additional attributes."""
         if self._last_status:
-            return {
+            attrs = {
+                "status": self._last_status.get("status", "unknown"),
                 "limit_mb": self._last_status.get("limit_mb"),
                 "warning_threshold_mb": self._last_status.get("warning_threshold_mb"),
                 "critical_threshold_mb": self._last_status.get("critical_threshold_mb"),
                 "message": self._last_status.get("message"),
-                "error": self._last_status.get("error"),
             }
-        return {}
+            # Only add error if exists
+            if "error" in self._last_status:
+                attrs["error"] = self._last_status["error"]
+            return attrs
+        return {"status": "initializing"}
 
     async def async_update(self) -> None:
         """Update sensor."""
