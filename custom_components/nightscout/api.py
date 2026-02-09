@@ -169,8 +169,8 @@ class NightscoutAPI:
             
             # Get entries from specific time
             params = {
-                "find[dateString][$gte]": time_ago.isoformat(),
-                "count": 10000  # Large number to get all entries in period
+                "find[date][$gte]": timestamp,
+                "count": 10000,  # Large number to get all entries in period
             }
             return await self._request(ENDPOINT_ENTRIES, params)
         except Exception as err:

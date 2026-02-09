@@ -41,6 +41,9 @@ from .const import (
     ATTR_TIME_BELOW_RANGE,
     ATTR_TIME_IN_RANGE,
     ATTR_TREATMENT_TYPE,
+    CONF_GLUCOSE_UNIT,
+    CONF_TARGET_MAX,
+    CONF_TARGET_MIN,
     DOMAIN,
     SENSOR_BASAL_RATE,
     SENSOR_BLOOD_GLUCOSE,
@@ -65,6 +68,7 @@ from .const import (
     UNIT_EA1C,
     UNIT_INSULIN,
     UNIT_MGDL,
+    UNIT_MMOL,
     UNIT_RATIO,
 )
 from .diagnostics import NightscoutDiagnostics
@@ -89,6 +93,7 @@ from .utils import (
     get_bg_state,
     get_direction_icon,
     get_sensor_icon,
+    mgdl_to_mmol,
     round_to_precision,
 )
 
@@ -106,9 +111,13 @@ async def async_setup_entry(
     api = hass.data[DOMAIN][config_entry.entry_id]["api"]
     diagnostics = hass.data[DOMAIN][config_entry.entry_id].get("diagnostics")
 
+    glucose_unit = config_entry.data.get(CONF_GLUCOSE_UNIT, UNIT_MGDL)
+    target_min = config_entry.data.get(CONF_TARGET_MIN, 70)
+    target_max = config_entry.data.get(CONF_TARGET_MAX, 180)
+
     entities = [
         # Main glucose sensor (renamed from blood_sugar to blood_glucose)
-        BloodGlucoseSensor(coordinator, api),
+        BloodGlucoseSensor(coordinator, api, glucose_unit, target_min, target_max),
         
         # IOB/COB sensors
         IOBSensor(coordinator, api),
@@ -148,15 +157,15 @@ async def async_setup_entry(
 
     for period_name, period_hours in periods:
         entities.extend([
-            MeanBGSensor(statistics_coordinator, period_name, period_hours),
-            MedianBGSensor(statistics_coordinator, period_name, period_hours),
-            StdDevSensor(statistics_coordinator, period_name, period_hours),
-            CVSensor(statistics_coordinator, period_name, period_hours),
-            GVISensor(statistics_coordinator, period_name, period_hours),
-            PGSSensor(statistics_coordinator, period_name, period_hours),
-            TIRSensor(statistics_coordinator, period_name, period_hours),
-            TBRSensor(statistics_coordinator, period_name, period_hours),
-            TARSensor(statistics_coordinator, period_name, period_hours),
+            MeanBGSensor(statistics_coordinator, period_name, period_hours, glucose_unit, target_min, target_max),
+            MedianBGSensor(statistics_coordinator, period_name, period_hours, glucose_unit, target_min, target_max),
+            StdDevSensor(statistics_coordinator, period_name, period_hours, glucose_unit, target_min, target_max),
+            CVSensor(statistics_coordinator, period_name, period_hours, glucose_unit, target_min, target_max),
+            GVISensor(statistics_coordinator, period_name, period_hours, glucose_unit, target_min, target_max),
+            PGSSensor(statistics_coordinator, period_name, period_hours, glucose_unit, target_min, target_max),
+            TIRSensor(statistics_coordinator, period_name, period_hours, glucose_unit, target_min, target_max),
+            TBRSensor(statistics_coordinator, period_name, period_hours, glucose_unit, target_min, target_max),
+            TARSensor(statistics_coordinator, period_name, period_hours, glucose_unit, target_min, target_max),
         ])
 
     # Add diagnostic sensors if diagnostics is available
@@ -200,11 +209,23 @@ class NightscoutSensorBase(CoordinatorEntity, SensorEntity):
 class BloodGlucoseSensor(NightscoutSensorBase):
     """Blood glucose sensor (renamed from blood sugar)."""
 
-    def __init__(self, coordinator: NightscoutDataUpdateCoordinator, api: Any) -> None:
+    def __init__(
+        self,
+        coordinator: NightscoutDataUpdateCoordinator,
+        api: Any,
+        glucose_unit: str,
+        target_min: float,
+        target_max: float,
+    ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, api, SENSOR_BLOOD_GLUCOSE)
         self._attr_name = "Blood Glucose"
-        self._attr_native_unit_of_measurement = UNIT_MGDL
+        self._glucose_unit = glucose_unit
+        self._target_min = target_min
+        self._target_max = target_max
+        self._attr_native_unit_of_measurement = (
+            UNIT_MMOL if glucose_unit == UNIT_MMOL else UNIT_MGDL
+        )
         self._attr_state_class = SensorStateClass.MEASUREMENT
         self._attr_device_class = None
 
@@ -214,7 +235,12 @@ class BloodGlucoseSensor(NightscoutSensorBase):
         entries = self.coordinator.data.get("entries", [])
         bg_data = self.api.extract_blood_sugar(entries)
         if bg_data:
-            return bg_data.get("value")
+            value = bg_data.get("value")
+            if value is None:
+                return None
+            if self._glucose_unit == UNIT_MMOL:
+                return mgdl_to_mmol(value)
+            return value
         return None
 
     @property
@@ -226,26 +252,37 @@ class BloodGlucoseSensor(NightscoutSensorBase):
             return {}
 
         value = bg_data.get("value")
+        display_value = (
+            mgdl_to_mmol(value) if value is not None and self._glucose_unit == UNIT_MMOL else value
+        )
         direction = bg_data.get("direction")
+        delta = bg_data.get("delta")
+        display_delta = (
+            mgdl_to_mmol(delta) if delta is not None and self._glucose_unit == UNIT_MMOL else delta
+        )
         
         return {
             ATTR_DIRECTION: f"{direction} {get_direction_icon(direction)}",
-            ATTR_DELTA: round_to_precision(bg_data.get("delta"), 1),
+            ATTR_DELTA: round_to_precision(display_delta, 1),
             ATTR_DEVICE: bg_data.get("device"),
             ATTR_LAST_UPDATE: format_timestamp(bg_data.get("timestamp")),
-            ATTR_STATUS: get_bg_state(value) if value else "unknown",
+            ATTR_STATUS: (
+                get_bg_state(display_value, self._target_min, self._target_max)
+                if display_value is not None
+                else "unknown"
+            ),
         }
 
     @property
     def icon(self) -> str:
         """Return icon based on blood sugar level."""
-        value = self.native_value
-        if value is None:
+        display_value = self.native_value
+        if display_value is None:
             return "mdi:water-alert"
-        
-        if value < 70:
+
+        if display_value < self._target_min:
             return "mdi:arrow-down-bold"
-        elif value > 180:
+        elif display_value > self._target_max:
             return "mdi:arrow-up-bold"
         return "mdi:water"
 

@@ -26,6 +26,7 @@ from .const import (
     ATTR_UNIT,
     DOMAIN,
     UNIT_MGDL,
+    UNIT_MMOL,
 )
 from .defaults import (
     CV_REFERENCE_RANGES,
@@ -50,12 +51,18 @@ class StatisticalSensorBase(CoordinatorEntity, SensorEntity):
         sensor_type: str,
         period_name: str,
         period_hours: int,
+        glucose_unit: str,
+        target_min: float,
+        target_max: float,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._sensor_type = sensor_type
         self._period_name = period_name
         self._period_hours = period_hours
+        self._glucose_unit = glucose_unit
+        self._target_min = target_min
+        self._target_max = target_max
         self._attr_unique_id = f"nightscout_{sensor_type}_{period_name}"
         self._attr_state_class = SensorStateClass.MEASUREMENT
 
@@ -86,17 +93,11 @@ class StatisticalSensorBase(CoordinatorEntity, SensorEntity):
         if not entries:
             return {}
 
-        # Get user configuration (glucose unit, target range)
-        # For now, use defaults
-        unit = "mg/dL"
-        target_min = 70
-        target_max = 180
-
         return calculate_statistics_for_period(
             entries=entries,
-            target_min=target_min,
-            target_max=target_max,
-            unit=unit,
+            target_min=self._target_min,
+            target_max=self._target_max,
+            unit=self._glucose_unit,
         )
 
 
@@ -108,11 +109,24 @@ class MeanBGSensor(StatisticalSensorBase):
         coordinator: NightscoutDataUpdateCoordinator,
         period_name: str,
         period_hours: int,
+        glucose_unit: str,
+        target_min: float,
+        target_max: float,
     ) -> None:
         """Initialize the sensor."""
-        super().__init__(coordinator, "mean_bg", period_name, period_hours)
+        super().__init__(
+            coordinator,
+            "mean_bg",
+            period_name,
+            period_hours,
+            glucose_unit,
+            target_min,
+            target_max,
+        )
         self._attr_name = f"Mean BG ({period_name})"
-        self._attr_native_unit_of_measurement = UNIT_MGDL
+        self._attr_native_unit_of_measurement = (
+            UNIT_MMOL if glucose_unit == UNIT_MMOL else UNIT_MGDL
+        )
         self._attr_icon = "mdi:chart-line"
 
     @property
@@ -146,11 +160,24 @@ class MedianBGSensor(StatisticalSensorBase):
         coordinator: NightscoutDataUpdateCoordinator,
         period_name: str,
         period_hours: int,
+        glucose_unit: str,
+        target_min: float,
+        target_max: float,
     ) -> None:
         """Initialize the sensor."""
-        super().__init__(coordinator, "median_bg", period_name, period_hours)
+        super().__init__(
+            coordinator,
+            "median_bg",
+            period_name,
+            period_hours,
+            glucose_unit,
+            target_min,
+            target_max,
+        )
         self._attr_name = f"Median BG ({period_name})"
-        self._attr_native_unit_of_measurement = UNIT_MGDL
+        self._attr_native_unit_of_measurement = (
+            UNIT_MMOL if glucose_unit == UNIT_MMOL else UNIT_MGDL
+        )
         self._attr_icon = "mdi:chart-timeline-variant"
 
     @property
@@ -177,11 +204,24 @@ class StdDevSensor(StatisticalSensorBase):
         coordinator: NightscoutDataUpdateCoordinator,
         period_name: str,
         period_hours: int,
+        glucose_unit: str,
+        target_min: float,
+        target_max: float,
     ) -> None:
         """Initialize the sensor."""
-        super().__init__(coordinator, "stdev", period_name, period_hours)
+        super().__init__(
+            coordinator,
+            "stdev",
+            period_name,
+            period_hours,
+            glucose_unit,
+            target_min,
+            target_max,
+        )
         self._attr_name = f"StdDev ({period_name})"
-        self._attr_native_unit_of_measurement = UNIT_MGDL
+        self._attr_native_unit_of_measurement = (
+            UNIT_MMOL if glucose_unit == UNIT_MMOL else UNIT_MGDL
+        )
         self._attr_icon = "mdi:chart-bell-curve"
 
     @property
@@ -215,9 +255,20 @@ class CVSensor(StatisticalSensorBase):
         coordinator: NightscoutDataUpdateCoordinator,
         period_name: str,
         period_hours: int,
+        glucose_unit: str,
+        target_min: float,
+        target_max: float,
     ) -> None:
         """Initialize the sensor."""
-        super().__init__(coordinator, "cv", period_name, period_hours)
+        super().__init__(
+            coordinator,
+            "cv",
+            period_name,
+            period_hours,
+            glucose_unit,
+            target_min,
+            target_max,
+        )
         self._attr_name = f"CV ({period_name})"
         self._attr_native_unit_of_measurement = "%"
         self._attr_icon = "mdi:percent"
@@ -254,9 +305,20 @@ class GVISensor(StatisticalSensorBase):
         coordinator: NightscoutDataUpdateCoordinator,
         period_name: str,
         period_hours: int,
+        glucose_unit: str,
+        target_min: float,
+        target_max: float,
     ) -> None:
         """Initialize the sensor."""
-        super().__init__(coordinator, "gvi", period_name, period_hours)
+        super().__init__(
+            coordinator,
+            "gvi",
+            period_name,
+            period_hours,
+            glucose_unit,
+            target_min,
+            target_max,
+        )
         self._attr_name = f"GVI ({period_name})"
         self._attr_native_unit_of_measurement = None
         self._attr_icon = "mdi:chart-scatter-plot"
@@ -291,11 +353,24 @@ class PGSSensor(StatisticalSensorBase):
         coordinator: NightscoutDataUpdateCoordinator,
         period_name: str,
         period_hours: int,
+        glucose_unit: str,
+        target_min: float,
+        target_max: float,
     ) -> None:
         """Initialize the sensor."""
-        super().__init__(coordinator, "pgs", period_name, period_hours)
+        super().__init__(
+            coordinator,
+            "pgs",
+            period_name,
+            period_hours,
+            glucose_unit,
+            target_min,
+            target_max,
+        )
         self._attr_name = f"PGS ({period_name})"
-        self._attr_native_unit_of_measurement = UNIT_MGDL
+        self._attr_native_unit_of_measurement = (
+            UNIT_MMOL if glucose_unit == UNIT_MMOL else UNIT_MGDL
+        )
         self._attr_icon = "mdi:account-heart"
 
     @property
@@ -324,9 +399,20 @@ class TIRSensor(StatisticalSensorBase):
         coordinator: NightscoutDataUpdateCoordinator,
         period_name: str,
         period_hours: int,
+        glucose_unit: str,
+        target_min: float,
+        target_max: float,
     ) -> None:
         """Initialize the sensor."""
-        super().__init__(coordinator, "tir", period_name, period_hours)
+        super().__init__(
+            coordinator,
+            "tir",
+            period_name,
+            period_hours,
+            glucose_unit,
+            target_min,
+            target_max,
+        )
         self._attr_name = f"Time in Range ({period_name})"
         self._attr_native_unit_of_measurement = "%"
         self._attr_icon = "mdi:target"
@@ -365,9 +451,20 @@ class TBRSensor(StatisticalSensorBase):
         coordinator: NightscoutDataUpdateCoordinator,
         period_name: str,
         period_hours: int,
+        glucose_unit: str,
+        target_min: float,
+        target_max: float,
     ) -> None:
         """Initialize the sensor."""
-        super().__init__(coordinator, "tbr", period_name, period_hours)
+        super().__init__(
+            coordinator,
+            "tbr",
+            period_name,
+            period_hours,
+            glucose_unit,
+            target_min,
+            target_max,
+        )
         self._attr_name = f"Time Below Range ({period_name})"
         self._attr_native_unit_of_measurement = "%"
         self._attr_icon = "mdi:arrow-down-bold"
@@ -407,9 +504,20 @@ class TARSensor(StatisticalSensorBase):
         coordinator: NightscoutDataUpdateCoordinator,
         period_name: str,
         period_hours: int,
+        glucose_unit: str,
+        target_min: float,
+        target_max: float,
     ) -> None:
         """Initialize the sensor."""
-        super().__init__(coordinator, "tar", period_name, period_hours)
+        super().__init__(
+            coordinator,
+            "tar",
+            period_name,
+            period_hours,
+            glucose_unit,
+            target_min,
+            target_max,
+        )
         self._attr_name = f"Time Above Range ({period_name})"
         self._attr_native_unit_of_measurement = "%"
         self._attr_icon = "mdi:arrow-up-bold"
