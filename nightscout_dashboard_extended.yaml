@@ -123,11 +123,11 @@ views:
           - type: horizontal-stack
             cards:
               - type: entity
-                entity: sensor.mean_bg_24h
+                entity: sensor.nightscout_mean_bg_24h
                 name: Средняя глюкоза
                 icon: mdi:format-align-center
               - type: entity
-                entity: sensor.median_bg_24h
+                entity: sensor.nightscout_median_bg_24h
                 name: Медианная глюкоза
                 icon: mdi:chart-timeline-variant
               - type: entity
@@ -137,15 +137,15 @@ views:
           - type: horizontal-stack
             cards:
               - type: entity
-                entity: sensor.stdev_24h
+                entity: sensor.nightscout_stdev_24h
                 name: Стд. отклонение
                 icon: mdi:chart-bell-curve
               - type: entity
-                entity: sensor.cv_24h
+                entity: sensor.nightscout_cv_24h
                 name: Коэфф. вариации
                 icon: mdi:percent
               - type: entity
-                entity: sensor.gvi_24h
+                entity: sensor.nightscout_gvi_24h
                 name: GVI
                 icon: mdi:chart-scatter-plot
           - type: entities
@@ -170,10 +170,10 @@ views:
           - type: horizontal-stack
             cards:
               - type: entity
-                entity: sensor.mean_bg_7d
+                entity: sensor.nightscout_mean_bg_7d
                 name: Средняя глюкоза
               - type: entity
-                entity: sensor.median_bg_7d
+                entity: sensor.nightscout_median_bg_7d
                 name: Медианная глюкоза
               - type: entity
                 entity: sensor.nightscout_ea1c_7d
@@ -181,13 +181,13 @@ views:
           - type: horizontal-stack
             cards:
               - type: entity
-                entity: sensor.stdev_7d
+                entity: sensor.nightscout_stdev_7d
                 name: Стд. отклонение
               - type: entity
-                entity: sensor.cv_7d
+                entity: sensor.nightscout_cv_7d
                 name: Коэфф. вариации
               - type: entity
-                entity: sensor.gvi_7d
+                entity: sensor.nightscout_gvi_7d
                 name: GVI
           - type: entities
             title: Time in Range (7д)
@@ -211,10 +211,10 @@ views:
           - type: horizontal-stack
             cards:
               - type: entity
-                entity: sensor.mean_bg_30d
+                entity: sensor.nightscout_mean_bg_30d
                 name: Средняя глюкоза
               - type: entity
-                entity: sensor.median_bg_30d
+                entity: sensor.nightscout_median_bg_30d
                 name: Медианная глюкоза
               - type: entity
                 entity: sensor.nightscout_ea1c_30d
@@ -222,13 +222,13 @@ views:
           - type: horizontal-stack
             cards:
               - type: entity
-                entity: sensor.stdev_30d
+                entity: sensor.nightscout_stdev_30d
                 name: Стд. отклонение
               - type: entity
-                entity: sensor.cv_30d
+                entity: sensor.nightscout_cv_30d
                 name: Коэфф. вариации
               - type: entity
-                entity: sensor.gvi_30d
+                entity: sensor.nightscout_gvi_30d
                 name: GVI
           - type: entities
             title: Time in Range (30д)
@@ -252,10 +252,10 @@ views:
           - type: horizontal-stack
             cards:
               - type: entity
-                entity: sensor.mean_bg_90d
+                entity: sensor.nightscout_mean_bg_90d
                 name: Средняя глюкоза
               - type: entity
-                entity: sensor.median_bg_90d
+                entity: sensor.nightscout_median_bg_90d
                 name: Медианная глюкоза
               - type: entity
                 entity: sensor.nightscout_ea1c_90d
@@ -263,13 +263,13 @@ views:
           - type: horizontal-stack
             cards:
               - type: entity
-                entity: sensor.stdev_90d
+                entity: sensor.nightscout_stdev_90d
                 name: Стд. отклонение
               - type: entity
-                entity: sensor.cv_90d
+                entity: sensor.nightscout_cv_90d
                 name: Коэфф. вариации
               - type: entity
-                entity: sensor.gvi_90d
+                entity: sensor.nightscout_gvi_90d
                 name: GVI
           - type: entities
             title: Time in Range (90д)
