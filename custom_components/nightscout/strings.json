@@ -2,19 +2,25 @@
   "config": {
     "step": {
       "user": {
-        "title": "Configure Nightscout Extended",
-        "description": "Set up your Nightscout connection and preferences.\n\n**Required:**\n• Nightscout URL\n\n**Optional:**\n• API Key (if your server requires authentication)\n• Glucose unit and target range\n• DDNS settings (for automatic DNS updates)",
+        "title": "Configure Nightscout Extended - Connection",
+        "description": "Connect to your Nightscout server.\n\n**Step 1 of 2:** Connection and Glucose Unit",
         "data": {
           "url": "Nightscout URL",
           "api_key": "API Key (optional)",
-          "glucose_unit": "Glucose Unit",
-          "target_min": "Target Min (mg/dL or mmol/L)",
-          "target_max": "Target Max (mg/dL or mmol/L)",
+          "glucose_unit": "Glucose Unit"
+        }
+      },
+      "preferences": {
+        "title": "Configure Nightscout Extended - Preferences",
+        "description": "Set your target glucose range and DDNS settings.\n\n**Step 2 of 2:** Target range is automatically set based on {glucose_unit}.\n\nOptional: Configure DDNS for automatic DNS updates.",
+        "data": {
+          "target_min": "Target Min ({glucose_unit})",
+          "target_max": "Target Max ({glucose_unit})",
           "enable_ddns": "Enable DDNS Updates",
           "ddns_service": "DDNS Service",
           "ddns_domain": "Domain",
           "ddns_token": "DDNS Token",
-          "ddns_update_url": "Update URL (FreeDNS)"
+          "ddns_update_url": "Update URL (FreeDNS only)"
         }
       }
     },
@@ -29,19 +35,25 @@
   "options": {
     "step": {
       "init": {
-        "title": "Update Nightscout Settings",
-        "description": "Update your Nightscout configuration.\n\nNote: After changing DDNS settings, the next update will be performed automatically.",
+        "title": "Update Nightscout Settings - Connection",
+        "description": "Update connection and glucose unit.\n\n**Step 1 of 2:** If you change the glucose unit, target ranges will be automatically converted.",
         "data": {
           "url": "Nightscout URL",
           "api_key": "API Key (optional)",
-          "glucose_unit": "Glucose Unit", 
-          "target_min": "Target Min (mg/dL or mmol/L)",
-          "target_max": "Target Max (mg/dL or mmol/L)",
+          "glucose_unit": "Glucose Unit"
+        }
+      },
+      "preferences": {
+        "title": "Update Nightscout Settings - Preferences",
+        "description": "Update target range and DDNS settings.\n\n**Step 2 of 2:** Values shown are for {glucose_unit}.\n\nNote: After changing DDNS settings, the next update will be performed automatically.",
+        "data": {
+          "target_min": "Target Min ({glucose_unit})",
+          "target_max": "Target Max ({glucose_unit})",
           "enable_ddns": "Enable DDNS Updates",
           "ddns_service": "DDNS Service",
           "ddns_domain": "Domain",
           "ddns_token": "DDNS Token",
-          "ddns_update_url": "Update URL (FreeDNS)"
+          "ddns_update_url": "Update URL (FreeDNS only)"
         }
       }
     }

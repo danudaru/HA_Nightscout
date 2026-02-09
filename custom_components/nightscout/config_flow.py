@@ -29,8 +29,9 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-def get_user_data_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
-    """Get user data schema with optional defaults."""
+
+def get_step_1_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
+    """Get step 1 schema (URL, API key, glucose unit)."""
     if defaults is None:
         defaults = {}
     
@@ -38,17 +39,36 @@ def get_user_data_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
         {
             vol.Required(CONF_URL, default=defaults.get(CONF_URL, "")): str,
             vol.Optional(CONF_API_KEY, default=defaults.get(CONF_API_KEY, "")): str,
-            vol.Optional(
+            vol.Required(
                 CONF_GLUCOSE_UNIT,
                 default=defaults.get(CONF_GLUCOSE_UNIT, "mg/dL"),
             ): vol.In(["mg/dL", "mmol/L"]),
-            vol.Optional(
+        }
+    )
+
+
+def get_step_2_schema(glucose_unit: str, defaults: dict[str, Any] | None = None) -> vol.Schema:
+    """Get step 2 schema (target range and DDNS) with unit-specific defaults."""
+    if defaults is None:
+        defaults = {}
+    
+    # Set defaults based on glucose unit
+    if glucose_unit == "mmol/L":
+        default_min = defaults.get(CONF_TARGET_MIN, 3.9)
+        default_max = defaults.get(CONF_TARGET_MAX, 10.0)
+    else:  # mg/dL
+        default_min = defaults.get(CONF_TARGET_MIN, 70)
+        default_max = defaults.get(CONF_TARGET_MAX, 180)
+    
+    return vol.Schema(
+        {
+            vol.Required(
                 CONF_TARGET_MIN,
-                default=defaults.get(CONF_TARGET_MIN, 70),
+                default=default_min,
             ): vol.Coerce(float),
-            vol.Optional(
+            vol.Required(
                 CONF_TARGET_MAX,
-                default=defaults.get(CONF_TARGET_MAX, 180),
+                default=default_max,
             ): vol.Coerce(float),
             vol.Optional(
                 CONF_ENABLE_DDNS,
@@ -91,6 +111,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
+    def __init__(self) -> None:
+        """Initialize config flow."""
+        self._data: dict[str, Any] = {}
+
     @staticmethod
     def async_get_options_flow(
         config_entry: config_entries.ConfigEntry,
@@ -101,27 +125,48 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Handle the initial step."""
+        """Handle the initial step (URL, API key, glucose unit)."""
         errors: dict[str, str] = {}
 
         if user_input is not None:
             try:
                 info = await validate_input(self.hass, user_input)
+                # Save data from step 1
+                self._data.update(user_input)
+                # Move to step 2
+                return await self.async_step_preferences()
             except CannotConnect:
                 errors["base"] = "cannot_connect"
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
-            else:
-                # Create entry with all data
-                return self.async_create_entry(title=info["title"], data=user_input)
 
         return self.async_show_form(
             step_id="user", 
-            data_schema=get_user_data_schema(),
+            data_schema=get_step_1_schema(self._data),
             errors=errors,
             description_placeholders={
                 "docs_url": "https://github.com/danudaru/HA_Nightscout"
+            }
+        )
+
+    async def async_step_preferences(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Handle preferences step (target range and DDNS)."""
+        if user_input is not None:
+            # Combine all data
+            self._data.update(user_input)
+            return self.async_create_entry(title="Nightscout Extended", data=self._data)
+
+        # Get glucose unit from step 1
+        glucose_unit = self._data.get(CONF_GLUCOSE_UNIT, "mg/dL")
+        
+        return self.async_show_form(
+            step_id="preferences",
+            data_schema=get_step_2_schema(glucose_unit, self._data),
+            description_placeholders={
+                "glucose_unit": glucose_unit,
             }
         )
 
@@ -129,26 +174,76 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 class OptionsFlowHandler(config_entries.OptionsFlow):
     """Handle options flow for Nightscout Extended."""
 
+    def __init__(self) -> None:
+        """Initialize options flow."""
+        self._data: dict[str, Any] = {}
+
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Manage the options."""
+        """Manage the options - step 1 (URL, API key, glucose unit)."""
         if user_input is not None:
-            # Update config entry data
-            self.hass.config_entries.async_update_entry(
-                self.config_entry,
-                data={**self.config_entry.data, **user_input}
-            )
-            return self.async_create_entry(title="", data={})
+            # Check if glucose unit changed
+            old_unit = self.config_entry.data.get(CONF_GLUCOSE_UNIT, "mg/dL")
+            new_unit = user_input.get(CONF_GLUCOSE_UNIT, "mg/dL")
+            
+            # Save step 1 data
+            self._data.update(user_input)
+            
+            # If unit changed, convert existing target values
+            if old_unit != new_unit:
+                old_min = self.config_entry.data.get(CONF_TARGET_MIN, 70 if old_unit == "mg/dL" else 3.9)
+                old_max = self.config_entry.data.get(CONF_TARGET_MAX, 180 if old_unit == "mg/dL" else 10.0)
+                
+                if new_unit == "mmol/L" and old_unit == "mg/dL":
+                    # Convert mg/dL to mmol/L
+                    self._data[CONF_TARGET_MIN] = round(old_min / 18.0, 1)
+                    self._data[CONF_TARGET_MAX] = round(old_max / 18.0, 1)
+                elif new_unit == "mg/dL" and old_unit == "mmol/L":
+                    # Convert mmol/L to mg/dL
+                    self._data[CONF_TARGET_MIN] = round(old_min * 18.0, 0)
+                    self._data[CONF_TARGET_MAX] = round(old_max * 18.0, 0)
+            
+            # Move to step 2
+            return await self.async_step_preferences()
 
         # Get current config
         current_config = self.config_entry.data
         
         return self.async_show_form(
             step_id="init", 
-            data_schema=get_user_data_schema(current_config),
+            data_schema=get_step_1_schema(current_config),
             description_placeholders={
                 "docs_url": "https://github.com/danudaru/HA_Nightscout"
+            }
+        )
+
+    async def async_step_preferences(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Manage preferences (target range and DDNS)."""
+        if user_input is not None:
+            # Combine all data
+            self._data.update(user_input)
+            
+            # Update config entry data
+            self.hass.config_entries.async_update_entry(
+                self.config_entry,
+                data=self._data
+            )
+            return self.async_create_entry(title="", data={})
+
+        # Get glucose unit from step 1 or existing config
+        glucose_unit = self._data.get(CONF_GLUCOSE_UNIT) or self.config_entry.data.get(CONF_GLUCOSE_UNIT, "mg/dL")
+        
+        # Merge current config with step 1 data
+        current_config = {**self.config_entry.data, **self._data}
+        
+        return self.async_show_form(
+            step_id="preferences",
+            data_schema=get_step_2_schema(glucose_unit, current_config),
+            description_placeholders={
+                "glucose_unit": glucose_unit,
             }
         )
 
