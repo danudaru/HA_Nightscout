@@ -11,8 +11,8 @@
       }
     },
     "error": {
-      "cannot_connect": "Не удалось подключиться к Nightscout. Проверьте URL и попробуйте снова.",
-      "unknown": "Произошла неожиданная ошибка"
+      "cannot_connect": "Не удалось подключиться к Nightscout. Проверьте:\n• URL должен быть полным: https://ваш-nightscout.com\n• Сервер должен быть доступен\n• Если требуется, добавьте API Key\n• Проверьте логи для деталей",
+      "unknown": "Произошла неожиданная ошибка. Проверьте логи Home Assistant"
     },
     "abort": {
       "already_configured": "Этот сервер Nightscout уже настроен"

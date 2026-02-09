@@ -57,10 +57,36 @@ class NightscoutAPI:
     async def test_connection(self) -> bool:
         """Test connection to Nightscout."""
         try:
+            _LOGGER.info("Testing connection to Nightscout at %s", self.url)
             data = await self._request(ENDPOINT_STATUS)
-            return data is not None and "status" in data
+            
+            if data is None:
+                _LOGGER.error("No data received from Nightscout server")
+                return False
+            
+            if "status" not in data:
+                _LOGGER.error("Invalid response from Nightscout: missing 'status' field. Response: %s", data)
+                return False
+            
+            _LOGGER.info("Successfully connected to Nightscout. Status: %s", data.get("status"))
+            return True
+            
+        except aiohttp.ClientConnectorError as err:
+            _LOGGER.error("Cannot connect to Nightscout server at %s: %s (Check URL and internet connection)", self.url, err)
+            return False
+        except aiohttp.ClientResponseError as err:
+            if err.status == 401:
+                _LOGGER.error("Authentication failed (401). API key may be required or incorrect")
+            elif err.status == 404:
+                _LOGGER.error("Nightscout API endpoint not found (404). Check URL format")
+            else:
+                _LOGGER.error("HTTP error %s from Nightscout: %s", err.status, err)
+            return False
+        except asyncio.TimeoutError:
+            _LOGGER.error("Timeout connecting to Nightscout at %s (server too slow or unreachable)", self.url)
+            return False
         except Exception as err:
-            _LOGGER.error("Connection test failed: %s", err)
+            _LOGGER.error("Connection test failed: %s (type: %s)", err, type(err).__name__)
             return False
 
     async def get_entries(self, count: int = 1) -> list[dict[str, Any]]:
