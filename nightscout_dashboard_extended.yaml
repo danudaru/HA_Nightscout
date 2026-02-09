@@ -1,0 +1,392 @@
+# Nightscout Extended Dashboard - Расширенная панель управления
+
+# ВАЖНО: Этот файл содержит конфигурацию панели для Home Assistant
+# Для установки: скопируйте нужные разделы в ваш dashboard YAML
+
+# ============================================================================
+# ВКЛАДКА 1: ОБЗОР (Главная)
+# ============================================================================
+title: Nightscout Обзор
+path: nightscout-overview
+icon: mdi:heart-pulse
+cards:
+  # Текущая гликемия - большая карточка с gauge
+  - type: gauge
+    entity: sensor.blood_glucose
+    name: Текущая глюкоза
+    min: 0
+    max: 400
+    severity:
+      green: 70
+      yellow: 54
+      red: 0
+    segments:
+      - from: 0
+        color: '#db4437'
+      - from: 54
+        color: '#ff9800'
+      - from: 70
+        color: '#0f9d58'
+      - from: 180
+        color: '#ff9800'
+      - from: 250
+        color: '#db4437'
+
+  # Карточка быстрого обзора
+  - type: entities
+    title: Основные показатели
+    entities:
+      - entity: sensor.blood_glucose
+        name: Глюкоза
+        icon: mdi:water
+      - entity: sensor.nightscout_ea1c_90d
+        name: Гликированный гемоглобин (3 мес)
+        icon: mdi:chart-line
+      - type: divider
+      - entity: sensor.nightscout_insulin_on_board
+        name: Активный инсулин (IOB)
+      - entity: sensor.nightscout_carbs_on_board
+        name: Активные углеводы (COB)
+      - type: divider
+      - entity: sensor.nightscout_pump_reservoir
+        name: Инсулин в помпе
+      - entity: sensor.nightscout_pump_battery
+        name: Заряд помпы
+      - entity: sensor.nightscout_phone_battery
+        name: Заряд телефона
+
+  # Time in Range за 24 часа
+  - type: horizontal-stack
+    cards:
+      - type: gauge
+        entity: sensor.tir_24h
+        name: Time in Range
+        unit: '%'
+        min: 0
+        max: 100
+        severity:
+          green: 70
+          yellow: 50
+          red: 0
+      - type: gauge
+        entity: sensor.tbr_24h
+        name: Ниже целевого
+        unit: '%'
+        min: 0
+        max: 100
+        severity:
+          green: 0
+          yellow: 4
+          red: 10
+      - type: gauge
+        entity: sensor.tar_24h
+        name: Выше целевого
+        unit: '%'
+        min: 0
+        max: 100
+        severity:
+          green: 0
+          yellow: 25
+          red: 50
+
+# ============================================================================
+# ВКЛАДКА 2: ПОДРОБНАЯ ИНФОРМАЦИЯ И ГРАФИКИ
+# ============================================================================
+---
+title: Графики
+path: nightscout-graphs
+icon: mdi:chart-line
+cards:
+  # График глюкозы за последние 8 часов
+  - type: history-graph
+    title: Глюкоза за последние 8 часов
+    hours_to_show: 8
+    entities:
+      - entity: sensor.blood_glucose
+        name: Глюкоза
+
+  # График IOB и COB
+  - type: history-graph
+    title: IOB / COB / Sensitivity
+    hours_to_show: 8
+    entities:
+      - entity: sensor.nightscout_insulin_on_board
+        name: IOB
+      - entity: sensor.nightscout_carbs_on_board
+        name: COB
+      - entity: sensor.nightscout_sensitivity_ratio
+        name: Sensitivity
+
+  # График базальной скорости
+  - type: history-graph
+    title: Базальная скорость
+    hours_to_show: 8
+    entities:
+      - entity: sensor.nightscout_basal_rate
+        name: Basal Rate
+      - entity: sensor.nightscout_temp_basal
+        name: Temp Basal
+
+  # Последние данные о лечении
+  - type: entities
+    title: Последние действия
+    entities:
+      - entity: sensor.nightscout_last_treatment
+        name: Последнее действие
+      - entity: sensor.nightscout_last_bolus
+        name: Последний болюс
+      - entity: sensor.nightscout_last_carbs
+        name: Последние углеводы
+
+# ============================================================================
+# ВКЛАДКА 3: СТАТИСТИКА
+# ============================================================================
+---
+title: Статистика
+path: nightscout-statistics
+icon: mdi:chart-box
+cards:
+  # Статистика за 24 часа
+  - type: vertical-stack
+    cards:
+      - type: markdown
+        content: |
+          ## Статистика за 24 часа
+      - type: horizontal-stack
+        cards:
+          - type: entity
+            entity: sensor.mean_bg_24h
+            name: Средняя глюкоза
+            icon: mdi:format-align-center
+          - type: entity
+            entity: sensor.median_bg_24h
+            name: Медианная глюкоза
+            icon: mdi:chart-timeline-variant
+          - type: entity
+            entity: sensor.nightscout_ea1c_24h
+            name: eA1c
+            icon: mdi:percent
+
+  # Вариабельность за 24 часа
+  - type: horizontal-stack
+    cards:
+      - type: entity
+        entity: sensor.stdev_24h
+        name: Стд. отклонение
+        icon: mdi:chart-bell-curve
+      - type: entity
+        entity: sensor.cv_24h
+        name: Коэфф. вариации
+        icon: mdi:percent
+      - type: entity
+        entity: sensor.gvi_24h
+        name: GVI
+        icon: mdi:chart-scatter-plot
+
+  # Time in Range за 24 часа
+  - type: entities
+    title: Time in Range (24ч)
+    entities:
+      - entity: sensor.tir_24h
+        name: В целевом диапазоне
+      - entity: sensor.tbr_24h
+        name: Ниже целевого
+      - entity: sensor.tar_24h
+        name: Выше целевого
+
+  # Статистика за 7 дней
+  - type: vertical-stack
+    cards:
+      - type: markdown
+        content: |
+          ## Статистика за 7 дней
+      - type: horizontal-stack
+        cards:
+          - type: entity
+            entity: sensor.mean_bg_7d
+            name: Средняя глюкоза
+          - type: entity
+            entity: sensor.median_bg_7d
+            name: Медианная глюкоза
+          - type: entity
+            entity: sensor.nightscout_ea1c_7d
+            name: eA1c
+
+  - type: horizontal-stack
+    cards:
+      - type: entity
+        entity: sensor.stdev_7d
+        name: Стд. отклонение
+      - type: entity
+        entity: sensor.cv_7d
+        name: Коэфф. вариации
+      - type: entity
+        entity: sensor.gvi_7d
+        name: GVI
+
+  - type: entities
+    title: Time in Range (7д)
+    entities:
+      - entity: sensor.tir_7d
+        name: В целевом диапазоне
+      - entity: sensor.tbr_7d
+        name: Ниже целевого
+      - entity: sensor.tar_7d
+        name: Выше целевого
+
+  # Статистика за 30 дней
+  - type: vertical-stack
+    cards:
+      - type: markdown
+        content: |
+          ## Статистика за 30 дней
+      - type: horizontal-stack
+        cards:
+          - type: entity
+            entity: sensor.mean_bg_30d
+            name: Средняя глюкоза
+          - type: entity
+            entity: sensor.median_bg_30d
+            name: Медианная глюкоза
+          - type: entity
+            entity: sensor.nightscout_ea1c_30d
+            name: eA1c
+
+  - type: horizontal-stack
+    cards:
+      - type: entity
+        entity: sensor.stdev_30d
+        name: Стд. отклонение
+      - type: entity
+        entity: sensor.cv_30d
+        name: Коэфф. вариации
+      - type: entity
+        entity: sensor.gvi_30d
+        name: GVI
+
+  - type: entities
+    title: Time in Range (30д)
+    entities:
+      - entity: sensor.tir_30d
+        name: В целевом диапазоне
+      - entity: sensor.tbr_30d
+        name: Ниже целевого
+      - entity: sensor.tar_30d
+        name: Выше целевого
+
+  # Статистика за 90 дней
+  - type: vertical-stack
+    cards:
+      - type: markdown
+        content: |
+          ## Статистика за 90 дней (3 месяца)
+      - type: horizontal-stack
+        cards:
+          - type: entity
+            entity: sensor.mean_bg_90d
+            name: Средняя глюкоза
+          - type: entity
+            entity: sensor.median_bg_90d
+            name: Медианная глюкоза
+          - type: entity
+            entity: sensor.nightscout_ea1c_90d
+            name: eA1c
+
+  - type: horizontal-stack
+    cards:
+      - type: entity
+        entity: sensor.stdev_90d
+        name: Стд. отклонение
+      - type: entity
+        entity: sensor.cv_90d
+        name: Коэфф. вариации
+      - type: entity
+        entity: sensor.gvi_90d
+        name: GVI
+
+  - type: entities
+    title: Time in Range (90д)
+    entities:
+      - entity: sensor.tir_90d
+        name: В целевом диапазоне
+      - entity: sensor.tbr_90d
+        name: Ниже целевого
+      - entity: sensor.tar_90d
+        name: Выше целевого
+
+# ============================================================================
+# ВКЛАДКА 4: ДИАГНОСТИКА И СТАТУС СИСТЕМЫ
+# ============================================================================
+---
+title: Диагностика
+path: nightscout-diagnostics
+icon: mdi:stethoscope
+cards:
+  # Статус сервера
+  - type: entities
+    title: Статус сервера Nightscout
+    entities:
+      - entity: sensor.nightscout_server_status
+        name: Статус сервера
+        icon: mdi:server
+      - entity: sensor.nightscout_data_freshness
+        name: Свежесть данных
+        icon: mdi:clock-check
+      - entity: sensor.nightscout_database_size
+        name: Размер базы данных
+        icon: mdi:database
+
+  # Статус устройств
+  - type: entities
+    title: Статус устройств
+    entities:
+      - entity: sensor.nightscout_loop_status
+        name: Статус Loop
+        icon: mdi:sync
+      - entity: sensor.nightscout_device_status
+        name: Статус устройства
+        icon: mdi:cellphone
+
+  # Заряд батарей
+  - type: history-graph
+    title: Заряд батарей
+    hours_to_show: 24
+    entities:
+      - entity: sensor.nightscout_phone_battery
+        name: Телефон
+      - entity: sensor.nightscout_pump_battery
+        name: Помпа
+
+  # Инсулин в помпе
+  - type: history-graph
+    title: Остаток инсулина
+    hours_to_show: 24
+    entities:
+      - entity: sensor.nightscout_pump_reservoir
+        name: Инсулин в помпе
+
+  # Диагностическая информация
+  - type: markdown
+    content: |
+      ## Информация о системе
+      
+      Эта вкладка показывает диагностическую информацию о сервере Nightscout и подключенных устройствах.
+      
+      **Цветовые индикаторы:**
+      - 🟢 Зелёный: всё в порядке
+      - 🟡 Жёлтый: внимание, требуется проверка
+      - 🔴 Красный: критическая проблема, требуется немедленное внимание
+
+# ============================================================================
+# КАРТОЧКИ С ГРАФИЧЕСКИМ ОФОРМЛЕНИЕМ
+# ============================================================================
+
+# Примечание: Для расширенных графиков рекомендуется использовать:
+# - mini-graph-card (для красивых графиков)
+# - apexcharts-card (для сложных диаграмм)
+# - mushroom cards (для современного UI)
+
+# Установка через HACS:
+# HACS -> Frontend -> mini-graph-card
+# HACS -> Frontend -> apexcharts-card
+# HACS -> Frontend -> mushroom

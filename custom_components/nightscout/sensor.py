@@ -43,7 +43,7 @@ from .const import (
     ATTR_TREATMENT_TYPE,
     DOMAIN,
     SENSOR_BASAL_RATE,
-    SENSOR_BLOOD_SUGAR,
+    SENSOR_BLOOD_GLUCOSE,
     SENSOR_COB,
     SENSOR_DEVICE_STATUS,
     SENSOR_EA1C_24H,
@@ -67,6 +67,23 @@ from .const import (
     UNIT_MGDL,
     UNIT_RATIO,
 )
+from .diagnostics import NightscoutDiagnostics
+from .sensor_diagnostics import (
+    DatabaseSizeSensor,
+    DataFreshnessSensor,
+    ServerStatusSensor,
+)
+from .sensor_statistics import (
+    CVSensor,
+    GVISensor,
+    MeanBGSensor,
+    MedianBGSensor,
+    PGSSensor,
+    StdDevSensor,
+    TARSensor,
+    TBRSensor,
+    TIRSensor,
+)
 from .utils import (
     format_timestamp,
     get_bg_state,
@@ -86,27 +103,68 @@ async def async_setup_entry(
     """Set up Nightscout sensors based on a config entry."""
     coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
     api = hass.data[DOMAIN][config_entry.entry_id]["api"]
+    diagnostics = hass.data[DOMAIN][config_entry.entry_id].get("diagnostics")
 
     entities = [
-        BloodSugarSensor(coordinator, api),
+        # Main glucose sensor (renamed from blood_sugar to blood_glucose)
+        BloodGlucoseSensor(coordinator, api),
+        
+        # IOB/COB sensors
         IOBSensor(coordinator, api),
         COBSensor(coordinator, api),
         SensitivityRatioSensor(coordinator, api),
+        
+        # eA1c sensors
         EA1CSensor(coordinator, api, SENSOR_EA1C_24H, "24h", 24),
         EA1CSensor(coordinator, api, SENSOR_EA1C_7D, "7d", 168),
         EA1CSensor(coordinator, api, SENSOR_EA1C_30D, "30d", 720),
         EA1CSensor(coordinator, api, SENSOR_EA1C_90D, "90d", 2160),
+        
+        # Pump/Device sensors
         PumpReservoirSensor(coordinator, api),
         PumpBatterySensor(coordinator, api),
         PhoneBatterySensor(coordinator, api),
         BasalRateSensor(coordinator, api),
         TempBasalSensor(coordinator, api),
+        
+        # Treatment sensors
         LastTreatmentSensor(coordinator, api),
         LastBolusSensor(coordinator, api),
         LastCarbsSensor(coordinator, api),
+        
+        # Status sensors
         LoopStatusSensor(coordinator, api),
         DeviceStatusSensor(coordinator, api),
     ]
+
+    # Add statistical sensors for each time period
+    periods = [
+        ("24h", 24),
+        ("7d", 168),
+        ("30d", 720),
+        ("90d", 2160),
+    ]
+
+    for period_name, period_hours in periods:
+        entities.extend([
+            MeanBGSensor(coordinator, period_name, period_hours),
+            MedianBGSensor(coordinator, period_name, period_hours),
+            StdDevSensor(coordinator, period_name, period_hours),
+            CVSensor(coordinator, period_name, period_hours),
+            GVISensor(coordinator, period_name, period_hours),
+            PGSSensor(coordinator, period_name, period_hours),
+            TIRSensor(coordinator, period_name, period_hours),
+            TBRSensor(coordinator, period_name, period_hours),
+            TARSensor(coordinator, period_name, period_hours),
+        ])
+
+    # Add diagnostic sensors if diagnostics is available
+    if diagnostics:
+        entities.extend([
+            ServerStatusSensor(coordinator, diagnostics),
+            DataFreshnessSensor(coordinator, diagnostics),
+            DatabaseSizeSensor(coordinator, diagnostics),
+        ])
 
     async_add_entities(entities, True)
 
@@ -138,13 +196,13 @@ class NightscoutSensorBase(CoordinatorEntity, SensorEntity):
         }
 
 
-class BloodSugarSensor(NightscoutSensorBase):
-    """Blood sugar sensor."""
+class BloodGlucoseSensor(NightscoutSensorBase):
+    """Blood glucose sensor (renamed from blood sugar)."""
 
     def __init__(self, coordinator: NightscoutDataUpdateCoordinator, api: Any) -> None:
         """Initialize the sensor."""
-        super().__init__(coordinator, api, SENSOR_BLOOD_SUGAR)
-        self._attr_name = "Blood Sugar"
+        super().__init__(coordinator, api, SENSOR_BLOOD_GLUCOSE)
+        self._attr_name = "Blood Glucose"
         self._attr_native_unit_of_measurement = UNIT_MGDL
         self._attr_state_class = SensorStateClass.MEASUREMENT
         self._attr_device_class = None

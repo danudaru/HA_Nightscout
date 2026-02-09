@@ -17,8 +17,10 @@ from .const import (
     CONF_API_KEY,
     CONF_URL,
     DOMAIN,
+    STATISTICS_UPDATE_INTERVAL,
     UPDATE_INTERVAL,
 )
+from .diagnostics import NightscoutDiagnostics
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -38,6 +40,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _LOGGER.error("Failed to connect to Nightscout at %s", url)
         return False
 
+    # Create diagnostics
+    diagnostics = NightscoutDiagnostics(api, url)
+
     # Create coordinator
     coordinator = NightscoutDataUpdateCoordinator(hass, api)
 
@@ -48,6 +53,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = {
         "api": api,
         "coordinator": coordinator,
+        "diagnostics": diagnostics,
     }
 
     # Forward setup to platforms
