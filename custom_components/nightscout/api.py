@@ -37,28 +37,62 @@ class NightscoutAPI:
             self._headers["API-SECRET"] = api_key
 
     async def _request(
-        self, endpoint: str, params: dict[str, Any] | None = None
+        self, endpoint: str, params: dict[str, Any] | None = None, retry: int = 3
     ) -> Any:
-        """Make a request to the Nightscout API."""
+        """Make a request to the Nightscout API with retry logic."""
         url = f"{self.url}{endpoint}"
-        try:
-            async with self.session.get(
-                url, headers=self._headers, params=params, timeout=aiohttp.ClientTimeout(total=30)
-            ) as response:
-                response.raise_for_status()
-                return await response.json()
-        except aiohttp.ClientError as err:
-            _LOGGER.error("Error fetching data from %s: %s", url, err)
-            raise
-        except asyncio.TimeoutError as err:
-            _LOGGER.error("Timeout fetching data from %s", url)
-            raise
+        last_error = None
+        
+        for attempt in range(retry):
+            try:
+                async with self.session.get(
+                    url, 
+                    headers=self._headers, 
+                    params=params, 
+                    timeout=aiohttp.ClientTimeout(total=30),
+                    ssl=True  # Enforce SSL verification
+                ) as response:
+                    response.raise_for_status()
+                    return await response.json()
+                    
+            except aiohttp.ClientConnectorError as err:
+                last_error = err
+                if attempt < retry - 1:
+                    wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
+                    _LOGGER.warning(
+                        "Connection attempt %d/%d failed for %s: %s. Retrying in %ds...",
+                        attempt + 1, retry, url, err, wait_time
+                    )
+                    await asyncio.sleep(wait_time)
+                else:
+                    _LOGGER.error("All %d connection attempts failed for %s: %s", retry, url, err)
+                    raise
+                    
+            except aiohttp.ClientError as err:
+                _LOGGER.error("Error fetching data from %s: %s", url, err)
+                raise
+                
+            except asyncio.TimeoutError as err:
+                last_error = err
+                if attempt < retry - 1:
+                    _LOGGER.warning("Timeout on attempt %d/%d for %s. Retrying...", attempt + 1, retry, url)
+                    await asyncio.sleep(2)
+                else:
+                    _LOGGER.error("Timeout fetching data from %s after %d attempts", url, retry)
+                    raise
+        
+        # This should not be reached, but just in case
+        if last_error:
+            raise last_error
+        return None
 
     async def test_connection(self) -> bool:
         """Test connection to Nightscout."""
         try:
             _LOGGER.info("Testing connection to Nightscout at %s", self.url)
-            data = await self._request(ENDPOINT_STATUS)
+            
+            # Try to connect with retry
+            data = await self._request(ENDPOINT_STATUS, retry=2)
             
             if data is None:
                 _LOGGER.error("No data received from Nightscout server")
@@ -68,22 +102,51 @@ class NightscoutAPI:
                 _LOGGER.error("Invalid response from Nightscout: missing 'status' field. Response: %s", data)
                 return False
             
-            _LOGGER.info("Successfully connected to Nightscout. Status: %s", data.get("status"))
+            _LOGGER.info("Successfully connected to Nightscout. Status: %s, Name: %s, Version: %s", 
+                        data.get("status"), data.get("name", "Unknown"), data.get("version", "Unknown"))
             return True
             
         except aiohttp.ClientConnectorError as err:
-            _LOGGER.error("Cannot connect to Nightscout server at %s: %s (Check URL and internet connection)", self.url, err)
+            _LOGGER.error(
+                "Cannot connect to Nightscout server at %s: %s\n"
+                "Possible causes:\n"
+                "  • Server is offline or unreachable\n"
+                "  • Incorrect URL (check for typos)\n"
+                "  • DNS resolution failed\n"
+                "  • Firewall blocking connection\n"
+                "  • SSL/TLS certificate issues\n"
+                "Try: Check server status, verify URL, test from browser",
+                self.url, err
+            )
             return False
         except aiohttp.ClientResponseError as err:
             if err.status == 401:
                 _LOGGER.error("Authentication failed (401). API key may be required or incorrect")
             elif err.status == 404:
-                _LOGGER.error("Nightscout API endpoint not found (404). Check URL format")
+                _LOGGER.error("Nightscout API endpoint not found (404). Check URL format - should be base URL without /api/")
+            elif err.status == 403:
+                _LOGGER.error("Access forbidden (403). Check API key permissions")
+            elif err.status >= 500:
+                _LOGGER.error("Nightscout server error (%s). Server may be experiencing issues", err.status)
             else:
                 _LOGGER.error("HTTP error %s from Nightscout: %s", err.status, err)
             return False
+        except aiohttp.ClientSSLError as err:
+            _LOGGER.error(
+                "SSL/TLS error connecting to %s: %s\n"
+                "Possible causes:\n"
+                "  • Invalid or expired SSL certificate\n"
+                "  • Self-signed certificate\n"
+                "Try: Check if URL is correct (https:// vs http://)",
+                self.url, err
+            )
+            return False
         except asyncio.TimeoutError:
-            _LOGGER.error("Timeout connecting to Nightscout at %s (server too slow or unreachable)", self.url)
+            _LOGGER.error(
+                "Timeout connecting to Nightscout at %s (server too slow or unreachable)\n"
+                "Try: Check server status, increase timeout, verify internet connection",
+                self.url
+            )
             return False
         except Exception as err:
             _LOGGER.error("Connection test failed: %s (type: %s)", err, type(err).__name__)
