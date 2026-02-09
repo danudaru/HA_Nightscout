@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import logging
 from datetime import timedelta
+import asyncio
 
 import aiohttp
 
@@ -50,9 +51,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Create statistics coordinator (for statistical data - updates every 6 hours)
     statistics_coordinator = NightscoutStatisticsUpdateCoordinator(hass, api)
 
-    # Fetch initial data
+    # Fetch initial realtime data immediately so main sensors are available
     await coordinator.async_config_entry_first_refresh()
-    await statistics_coordinator.async_config_entry_first_refresh()
+
+    # Schedule delayed statistics refresh to avoid slowing integration startup.
+    # We'll perform the first statistics fetch after 10 minutes, then
+    # the coordinator's regular update interval (6 hours) will apply.
+    hass.async_create_task(
+        _delayed_statistics_initial_refresh(entry.entry_id, statistics_coordinator)
+    )
 
     # Setup DDNS manager if enabled
     ddns_manager = None
@@ -126,6 +133,20 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data[DOMAIN].pop(entry.entry_id)
 
     return unload_ok
+
+
+async def _delayed_statistics_initial_refresh(entry_id: str, coordinator: NightscoutStatisticsUpdateCoordinator) -> None:
+    """Delay the initial statistics refresh to reduce startup time.
+
+    Wait 10 minutes, then perform the coordinator's first refresh in background.
+    """
+    try:
+        await asyncio.sleep(600)  # 10 minutes
+        _LOGGER.debug("Starting delayed statistics refresh for entry %s", entry_id)
+        await coordinator.async_config_entry_first_refresh()
+        _LOGGER.info("Completed delayed statistics refresh for entry %s", entry_id)
+    except Exception as err:
+        _LOGGER.error("Delayed statistics refresh failed for entry %s: %s", entry_id, err)
 
 
 async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
