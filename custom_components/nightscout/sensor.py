@@ -102,6 +102,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up Nightscout sensors based on a config entry."""
     coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
+    statistics_coordinator = hass.data[DOMAIN][config_entry.entry_id]["statistics_coordinator"]
     api = hass.data[DOMAIN][config_entry.entry_id]["api"]
     diagnostics = hass.data[DOMAIN][config_entry.entry_id].get("diagnostics")
 
@@ -114,11 +115,11 @@ async def async_setup_entry(
         COBSensor(coordinator, api),
         SensitivityRatioSensor(coordinator, api),
         
-        # eA1c sensors
-        EA1CSensor(coordinator, api, SENSOR_EA1C_24H, "24h", 24),
-        EA1CSensor(coordinator, api, SENSOR_EA1C_7D, "7d", 168),
-        EA1CSensor(coordinator, api, SENSOR_EA1C_30D, "30d", 720),
-        EA1CSensor(coordinator, api, SENSOR_EA1C_90D, "90d", 2160),
+        # eA1c sensors (use statistics coordinator)
+        EA1CSensor(statistics_coordinator, api, SENSOR_EA1C_24H, "24h", 24),
+        EA1CSensor(statistics_coordinator, api, SENSOR_EA1C_7D, "7d", 168),
+        EA1CSensor(statistics_coordinator, api, SENSOR_EA1C_30D, "30d", 720),
+        EA1CSensor(statistics_coordinator, api, SENSOR_EA1C_90D, "90d", 2160),
         
         # Pump/Device sensors
         PumpReservoirSensor(coordinator, api),
@@ -137,7 +138,7 @@ async def async_setup_entry(
         DeviceStatusSensor(coordinator, api),
     ]
 
-    # Add statistical sensors for each time period
+    # Add statistical sensors for each time period (use statistics coordinator)
     periods = [
         ("24h", 24),
         ("7d", 168),
@@ -147,15 +148,15 @@ async def async_setup_entry(
 
     for period_name, period_hours in periods:
         entities.extend([
-            MeanBGSensor(coordinator, period_name, period_hours),
-            MedianBGSensor(coordinator, period_name, period_hours),
-            StdDevSensor(coordinator, period_name, period_hours),
-            CVSensor(coordinator, period_name, period_hours),
-            GVISensor(coordinator, period_name, period_hours),
-            PGSSensor(coordinator, period_name, period_hours),
-            TIRSensor(coordinator, period_name, period_hours),
-            TBRSensor(coordinator, period_name, period_hours),
-            TARSensor(coordinator, period_name, period_hours),
+            MeanBGSensor(statistics_coordinator, period_name, period_hours),
+            MedianBGSensor(statistics_coordinator, period_name, period_hours),
+            StdDevSensor(statistics_coordinator, period_name, period_hours),
+            CVSensor(statistics_coordinator, period_name, period_hours),
+            GVISensor(statistics_coordinator, period_name, period_hours),
+            PGSSensor(statistics_coordinator, period_name, period_hours),
+            TIRSensor(statistics_coordinator, period_name, period_hours),
+            TBRSensor(statistics_coordinator, period_name, period_hours),
+            TARSensor(statistics_coordinator, period_name, period_hours),
         ])
 
     # Add diagnostic sensors if diagnostics is available

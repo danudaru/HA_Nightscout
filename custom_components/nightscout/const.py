@@ -25,6 +25,7 @@ CONF_DDNS_TOKEN: Final = "ddns_token"
 CONF_DDNS_DOMAIN: Final = "ddns_domain"
 CONF_DDNS_UPDATE_URL: Final = "ddns_update_url"
 CONF_DOMAIN_EXPIRY: Final = "domain_expiry"
+CONF_DDNS_LAST_UPDATE: Final = "ddns_last_update"
 
 # API endpoints
 ENDPOINT_ENTRIES: Final = "/api/v1/entries.json"

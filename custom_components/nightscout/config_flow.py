@@ -20,7 +20,6 @@ from .const import (
     CONF_DDNS_SERVICE,
     CONF_DDNS_TOKEN,
     CONF_DDNS_UPDATE_URL,
-    CONF_DOMAIN_EXPIRY,
     CONF_ENABLE_DDNS,
     CONF_GLUCOSE_UNIT,
     CONF_TARGET_MAX,
@@ -30,12 +29,49 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-STEP_USER_DATA_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_URL): str,
-        vol.Optional(CONF_API_KEY): str,
-    }
-)
+def get_user_data_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
+    """Get user data schema with optional defaults."""
+    if defaults is None:
+        defaults = {}
+    
+    return vol.Schema(
+        {
+            vol.Required(CONF_URL, default=defaults.get(CONF_URL, "")): str,
+            vol.Optional(CONF_API_KEY, default=defaults.get(CONF_API_KEY, "")): str,
+            vol.Optional(
+                CONF_GLUCOSE_UNIT,
+                default=defaults.get(CONF_GLUCOSE_UNIT, "mg/dL"),
+            ): vol.In(["mg/dL", "mmol/L"]),
+            vol.Optional(
+                CONF_TARGET_MIN,
+                default=defaults.get(CONF_TARGET_MIN, 70),
+            ): vol.Coerce(float),
+            vol.Optional(
+                CONF_TARGET_MAX,
+                default=defaults.get(CONF_TARGET_MAX, 180),
+            ): vol.Coerce(float),
+            vol.Optional(
+                CONF_ENABLE_DDNS,
+                default=defaults.get(CONF_ENABLE_DDNS, False),
+            ): bool,
+            vol.Optional(
+                CONF_DDNS_SERVICE,
+                default=defaults.get(CONF_DDNS_SERVICE, "freedns"),
+            ): vol.In(["freedns", "duckdns"]),
+            vol.Optional(
+                CONF_DDNS_DOMAIN,
+                default=defaults.get(CONF_DDNS_DOMAIN, ""),
+            ): str,
+            vol.Optional(
+                CONF_DDNS_TOKEN,
+                default=defaults.get(CONF_DDNS_TOKEN, ""),
+            ): str,
+            vol.Optional(
+                CONF_DDNS_UPDATE_URL,
+                default=defaults.get(CONF_DDNS_UPDATE_URL, ""),
+            ): str,
+        }
+    )
 
 
 async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str, Any]:
@@ -47,7 +83,7 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
         raise CannotConnect
 
     # Return info that you want to store in the config entry.
-    return {"title": "Nightscout"}
+    return {"title": "Nightscout Extended"}
 
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -77,10 +113,16 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
             else:
+                # Create entry with all data
                 return self.async_create_entry(title=info["title"], data=user_input)
 
         return self.async_show_form(
-            step_id="user", data_schema=STEP_USER_DATA_SCHEMA, errors=errors
+            step_id="user", 
+            data_schema=get_user_data_schema(),
+            errors=errors,
+            description_placeholders={
+                "docs_url": "https://github.com/danudaru/HA_Nightscout"
+            }
         )
 
 
@@ -92,61 +134,23 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
     ) -> FlowResult:
         """Manage the options."""
         if user_input is not None:
-            return self.async_create_entry(title="", data=user_input)
+            # Update config entry data
+            self.hass.config_entries.async_update_entry(
+                self.config_entry,
+                data={**self.config_entry.data, **user_input}
+            )
+            return self.async_create_entry(title="", data={})
 
-        options = self.config_entry.options
+        # Get current config
+        current_config = self.config_entry.data
         
-        data_schema = vol.Schema(
-            {
-                vol.Optional(
-                    CONF_GLUCOSE_UNIT,
-                    default=options.get(CONF_GLUCOSE_UNIT, "mg/dL"),
-                ): vol.In(["mg/dL", "mmol/L"]),
-                vol.Optional(
-                    CONF_TARGET_MIN,
-                    default=options.get(CONF_TARGET_MIN, 70),
-                ): vol.Coerce(float),
-                vol.Optional(
-                    CONF_TARGET_MAX,
-                    default=options.get(CONF_TARGET_MAX, 180),
-                ): vol.Coerce(float),
-                vol.Optional(
-                    CONF_ENABLE_DDNS,
-                    default=options.get(CONF_ENABLE_DDNS, False),
-                ): bool,
+        return self.async_show_form(
+            step_id="init", 
+            data_schema=get_user_data_schema(current_config),
+            description_placeholders={
+                "docs_url": "https://github.com/danudaru/HA_Nightscout"
             }
         )
-
-        # If DDNS is enabled, add DDNS fields
-        if options.get(CONF_ENABLE_DDNS, False) or (
-            user_input and user_input.get(CONF_ENABLE_DDNS, False)
-        ):
-            data_schema = data_schema.extend(
-                {
-                    vol.Optional(
-                        CONF_DDNS_SERVICE,
-                        default=options.get(CONF_DDNS_SERVICE, "freedns"),
-                    ): vol.In(["freedns", "duckdns"]),
-                    vol.Optional(
-                        CONF_DDNS_DOMAIN,
-                        default=options.get(CONF_DDNS_DOMAIN, ""),
-                    ): str,
-                    vol.Optional(
-                        CONF_DDNS_TOKEN,
-                        default=options.get(CONF_DDNS_TOKEN, ""),
-                    ): str,
-                    vol.Optional(
-                        CONF_DDNS_UPDATE_URL,
-                        default=options.get(CONF_DDNS_UPDATE_URL, ""),
-                    ): str,
-                    vol.Optional(
-                        CONF_DOMAIN_EXPIRY,
-                        default=options.get(CONF_DOMAIN_EXPIRY, ""),
-                    ): str,
-                }
-            )
-
-        return self.async_show_form(step_id="init", data_schema=data_schema)
 
 
 class CannotConnect(Exception):

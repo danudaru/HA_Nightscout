@@ -3,10 +3,18 @@
     "step": {
       "user": {
         "title": "Configure Nightscout Extended",
-        "description": "Set up your Nightscout connection",
+        "description": "Set up your Nightscout connection and preferences.\n\n**Required:**\n• Nightscout URL\n\n**Optional:**\n• API Key (if your server requires authentication)\n• Glucose unit and target range\n• DDNS settings (for automatic DNS updates)",
         "data": {
           "url": "Nightscout URL",
-          "api_key": "API Key (optional)"
+          "api_key": "API Key (optional)",
+          "glucose_unit": "Glucose Unit",
+          "target_min": "Target Min (mg/dL or mmol/L)",
+          "target_max": "Target Max (mg/dL or mmol/L)",
+          "enable_ddns": "Enable DDNS Updates",
+          "ddns_service": "DDNS Service",
+          "ddns_domain": "Domain",
+          "ddns_token": "DDNS Token",
+          "ddns_update_url": "Update URL (FreeDNS)"
         }
       }
     },
@@ -16,6 +24,26 @@
     },
     "abort": {
       "already_configured": "This Nightscout server is already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Update Nightscout Settings",
+        "description": "Update your Nightscout configuration.\n\nNote: After changing DDNS settings, the next update will be performed automatically.",
+        "data": {
+          "url": "Nightscout URL",
+          "api_key": "API Key (optional)",
+          "glucose_unit": "Glucose Unit", 
+          "target_min": "Target Min (mg/dL or mmol/L)",
+          "target_max": "Target Max (mg/dL or mmol/L)",
+          "enable_ddns": "Enable DDNS Updates",
+          "ddns_service": "DDNS Service",
+          "ddns_domain": "Domain",
+          "ddns_token": "DDNS Token",
+          "ddns_update_url": "Update URL (FreeDNS)"
+        }
+      }
     }
   }
 }

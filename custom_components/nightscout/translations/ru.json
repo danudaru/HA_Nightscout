@@ -3,10 +3,18 @@
     "step": {
       "user": {
         "title": "Настройка Nightscout Extended",
-        "description": "Настройте подключение к серверу Nightscout",
+        "description": "Настройте подключение к серверу Nightscout и параметры.\n\n**Обязательно:**\n• URL Nightscout\n\n**Необязательно:**\n• API ключ (если сервер требует авторизацию)\n• Единицы глюкозы и целевой диапазон\n• Настройки DDNS (для автообновления DNS)",
         "data": {
           "url": "URL Nightscout",
-          "api_key": "API ключ (необязательно)"
+          "api_key": "API ключ (необязательно)",
+          "glucose_unit": "Единица измерения глюкозы",
+          "target_min": "Целевой минимум (mg/dL или mmol/L)",
+          "target_max": "Целевой максимум (mg/dL или mmol/L)",
+          "enable_ddns": "Включить обновление DDNS",
+          "ddns_service": "Сервис DDNS",
+          "ddns_domain": "Домен",
+          "ddns_token": "Токен DDNS",
+          "ddns_update_url": "URL обновления (FreeDNS)"
         }
       }
     },
@@ -16,6 +24,26 @@
     },
     "abort": {
       "already_configured": "Этот сервер Nightscout уже настроен"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Обновление настроек Nightscout",
+        "description": "Обновите конфигурацию Nightscout.\n\nПримечание: После изменения настроек DDNS, следующее обновление будет выполнено автоматически.",
+        "data": {
+          "url": "URL Nightscout",
+          "api_key": "API ключ (необязательно)",
+          "glucose_unit": "Единица измерения глюкозы",
+          "target_min": "Целевой минимум (mg/dL или mmol/L)",
+          "target_max": "Целевой максимум (mg/dL или mmol/L)",
+          "enable_ddns": "Включить обновление DDNS",
+          "ddns_service": "Сервис DDNS",
+          "ddns_domain": "Домен",
+          "ddns_token": "Токен DDNS",
+          "ddns_update_url": "URL обновления (FreeDNS)"
+        }
+      }
     }
   }
 }
