@@ -1,11 +1,5 @@
-# Nightscout Extended Dashboard - Расширенная панель управления
-# Скопируйте весь файл целиком в новый Dashboard (YAML режим)
-
 title: Nightscout Extended
 views:
-  # ============================================================================
-  # ВКЛАДКА 1: ОБЗОР (Главная)
-  # ============================================================================
   - title: Обзор
     path: nightscout-overview
     icon: mdi:heart-pulse
@@ -28,7 +22,6 @@ views:
             entity: sensor.blood_glucose
             attribute: last_update
             name: Последнее обновление
-
       - type: entities
         title: Основные показатели
         entities:
@@ -47,26 +40,39 @@ views:
             name: Заряд помпы
           - entity: sensor.nightscout_phone_battery
             name: Заряд телефона
-
+      - type: horizontal-stack
+        cards:
+          - type: gauge
+            entity: sensor.nightscout_ea1c_90d
+            needle: true
+            min: 3
+            max: 8
+            segments:
+              - from: 0
+                color: '#43a047'
+              - from: 5.7
+                color: '#fbc02d'
+              - from: 6.4
+                color: '#db4437'
       - type: custom:apexcharts-card
-        chart_type: bar
+        chart_type: donut
         header:
           show: true
           title: Time in Range (90д)
         series:
           - entity: sensor.time_in_range_90d
             name: В целевом диапазоне
-            color: "#43a047"
+            color: '#43a047'
           - entity: sensor.time_below_range_90d
             name: Ниже целевого
-            color: "#e53935"
+            color: '#e53935'
           - entity: sensor.time_above_range_90d
             name: Выше целевого
-            color: "#fbc02d"
+            color: '#fbc02d'
         apex_config:
           chart:
             stacked: true
-            stackType: "100%"
+            stackType: 100%
           plotOptions:
             bar:
               horizontal: true
@@ -76,170 +82,62 @@ views:
             max: 100
           yaxis:
             show: false
-
       - type: horizontal-stack
         cards:
-          - type: custom:apexcharts-card
-            chart_type: radialBar
-            header:
-              show: true
-              title: StdDev (90д)
-            series:
-              - entity: sensor.stddev_90d
-                name: StdDev
+          - type: vertical-stack
+            cards:
+              - type: gauge
+                entity: sensor.stddev_90d
+                needle: true
+                min: 0
                 max: 100
-                color_threshold:
-                  - value: 50
-                    color: "#43a047"
-                  - value: 70
-                    color: "#fbc02d"
-                  - value: 100
-                    color: "#e53935"
-            apex_config:
-              plotOptions:
-                radialBar:
-                  startAngle: -90
-                  endAngle: 90
-                  hollow:
-                    size: "60%"
-                  dataLabels:
-                    name:
-                      show: false
-                    value:
-                      show: true
-              stroke:
-                lineCap: round
-
-      - type: horizontal-stack
-        cards:
-          - type: custom:apexcharts-card
-            chart_type: radialBar
-            header:
-              show: true
-              title: eA1c (90д)
-            series:
-              - entity: sensor.nightscout_ea1c_90d
-                name: eA1c
-                max: 12
-                unit: "%"
-                color_threshold:
-                  - value: 7.0
-                    color: "#43a047"
-                  - value: 8.0
-                    color: "#fbc02d"
-                  - value: 12
-                    color: "#e53935"
-            apex_config:
-              plotOptions:
-                radialBar:
-                  startAngle: -90
-                  endAngle: 90
-                  hollow:
-                    size: "60%"
-                  dataLabels:
-                    name:
-                      show: false
-                    value:
-                      show: true
-              stroke:
-                lineCap: round
-          - type: custom:apexcharts-card
-            chart_type: radialBar
-            header:
-              show: true
-              title: PGS (90д)
-            series:
-              - entity: sensor.pgs_90d
-                name: PGS
+                segments:
+                  - from: 0
+                    color: '#43a047'
+                  - from: 50
+                    color: '#fbc02d'
+                  - from: 70
+                    color: '#e53935'
+              - type: gauge
+                entity: sensor.pgs_90d
+                needle: true
+                min: 0
                 max: 200
-                color_threshold:
-                  - value: 35
-                    color: "#43a047"
-                  - value: 100
-                    color: "#7cb342"
-                  - value: 150
-                    color: "#fbc02d"
-                  - value: 200
-                    color: "#e53935"
-            apex_config:
-              plotOptions:
-                radialBar:
-                  startAngle: -90
-                  endAngle: 90
-                  hollow:
-                    size: "60%"
-                  dataLabels:
-                    name:
-                      show: false
-                    value:
-                      show: true
-              stroke:
-                lineCap: round
-          - type: custom:apexcharts-card
-            chart_type: radialBar
-            header:
-              show: true
-              title: CV (90д)
-            series:
-              - entity: sensor.cv_90d
-                name: CV
+                segments:
+                  - from: 0
+                    color: '#43a047'
+                  - from: 35
+                    color: '#7cb342'
+                  - from: 100
+                    color: '#fbc02d'
+                  - from: 150
+                    color: '#e53935'
+          - type: vertical-stack
+            cards:
+              - type: gauge
+                entity: sensor.cv_90d
+                needle: true
+                min: 0
                 max: 70
-                unit: "%"
-                color_threshold:
-                  - value: 36
-                    color: "#43a047"
-                  - value: 50
-                    color: "#fbc02d"
-                  - value: 70
-                    color: "#e53935"
-            apex_config:
-              plotOptions:
-                radialBar:
-                  startAngle: -90
-                  endAngle: 90
-                  hollow:
-                    size: "60%"
-                  dataLabels:
-                    name:
-                      show: false
-                    value:
-                      show: true
-              stroke:
-                lineCap: round
-          - type: custom:apexcharts-card
-            chart_type: radialBar
-            header:
-              show: true
-              title: GVI (90д)
-            series:
-              - entity: sensor.gvi_90d
-                name: GVI
-                max: 2.0
-                color_threshold:
-                  - value: 1.2
-                    color: "#43a047"
-                  - value: 1.5
-                    color: "#fbc02d"
-                  - value: 2.0
-                    color: "#e53935"
-            apex_config:
-              plotOptions:
-                radialBar:
-                  startAngle: -90
-                  endAngle: 90
-                  hollow:
-                    size: "60%"
-                  dataLabels:
-                    name:
-                      show: false
-                    value:
-                      show: true
-              stroke:
-                lineCap: round
-
-  # ============================================================================
-  # ВКЛАДКА 2: ПОДРОБНАЯ ИНФОРМАЦИЯ И ГРАФИКИ
-  # ============================================================================
+                segments:
+                  - from: 0
+                    color: '#43a047'
+                  - from: 36
+                    color: '#fbc02d'
+                  - from: 50
+                    color: '#e53935'
+              - type: gauge
+                entity: sensor.gvi_90d
+                needle: true
+                min: 0
+                max: 2
+                segments:
+                  - from: 0
+                    color: '#43a047'
+                  - from: 1.2
+                    color: '#fbc02d'
+                  - from: 1.5
+                    color: '#e53935'
   - title: Графики
     path: nightscout-graphs
     icon: mdi:chart-line
@@ -250,18 +148,78 @@ views:
         entities:
           - entity: sensor.blood_glucose
             name: Глюкоза
-
-      - type: history-graph
-        title: IOB / COB / Sensitivity
-        hours_to_show: 8
-        entities:
-          - entity: sensor.nightscout_insulin_on_board
-            name: IOB
-          - entity: sensor.nightscout_carbs_on_board
-            name: COB
+      - type: custom:apexcharts-card
+        header:
+          show: true
+          title: IOB / COB / Sensitivity
+        graph_span: 3h
+        span:
+          end: minute
+        yaxis:
+          - id: Sensitivity
+            opposite: false
+            decimals: 0
+            apex_config:
+              stroke:
+                width: 2
+                dashArray: 10
+              markers:
+                size: 2
+                strokeWidth: 0
+              legend:
+                position: bottom
+          - id: IOB
+            decimals: 0
+            opposite: true
+            apex_config:
+              stroke:
+                width: 2
+                dashArray: 10
+              markers:
+                size: 4
+                strokeWidth: 0
+              legend:
+                position: bottom
+              tickAmount: 4
+          - id: COB
+            opposite: true
+            decimals: 0
+            apex_config:
+              stroke:
+                width: 2
+                dashArray: 10
+              markers:
+                size: 2
+                strokeWidth: 0
+              legend:
+                position: bottom
+        all_series_config:
+          stroke_width: 2
+        series:
           - entity: sensor.nightscout_sensitivity_ratio
-            name: Sensitivity
-
+            yaxis_id: Sensitivity
+            type: line
+            color: '#feb019'
+            group_by:
+              duration: 10m
+              func: avg
+              fill: last
+          - entity: sensor.nightscout_insulin_on_board
+            yaxis_id: IOB
+            type: line
+            color: '#008ffb'
+            group_by:
+              duration: 10m
+              func: avg
+              fill: last
+          - entity: sensor.nightscout_carbs_on_board
+            yaxis_id: COB
+            type: line
+            color: '#00e396'
+            group_by:
+              duration: 10m
+              func: avg
+              fill: last
       - type: history-graph
         title: Базальная скорость
         hours_to_show: 8
@@ -270,7 +228,6 @@ views:
             name: Basal Rate
           - entity: sensor.nightscout_temp_basal
             name: Temp Basal
-
       - type: entities
         title: Последние действия
         entities:
@@ -280,10 +237,6 @@ views:
             name: Последний болюс
           - entity: sensor.nightscout_last_carbs
             name: Последние углеводы
-
-  # ============================================================================
-  # ВКЛАДКА 3: СТАТИСТИКА
-  # ============================================================================
   - title: Статистика
     path: nightscout-statistics
     icon: mdi:chart-box
@@ -334,7 +287,6 @@ views:
               - entity: sensor.time_above_range_24h
                 name: Выше целевого
                 icon: mdi:arrow-up-bold
-
       - type: custom:expander-card
         title: Статистика за 7 дней
         expanded: false
@@ -375,7 +327,6 @@ views:
               - entity: sensor.time_above_range_7d
                 name: Выше целевого
                 icon: mdi:arrow-up-bold
-
       - type: custom:expander-card
         title: Статистика за 30 дней
         expanded: false
@@ -416,7 +367,6 @@ views:
               - entity: sensor.time_above_range_30d
                 name: Выше целевого
                 icon: mdi:arrow-up-bold
-
       - type: custom:expander-card
         title: Статистика за 90 дней (3 месяца)
         expanded: false
@@ -457,10 +407,6 @@ views:
               - entity: sensor.time_above_range_90d
                 name: Выше целевого
                 icon: mdi:arrow-up-bold
-
-  # ============================================================================
-  # ВКЛАДКА 4: ДИАГНОСТИКА И СТАТУС СИСТЕМЫ
-  # ============================================================================
   - title: Диагностика
     path: nightscout-diagnostics
     icon: mdi:stethoscope
@@ -477,7 +423,6 @@ views:
           - entity: sensor.nightscout_database_size
             name: Размер базы данных
             icon: mdi:database
-
       - type: entities
         title: Статус устройств
         entities:
@@ -487,7 +432,6 @@ views:
           - entity: sensor.nightscout_device_status
             name: Статус устройства
             icon: mdi:cellphone
-
       - type: history-graph
         title: Заряд батарей
         hours_to_show: 24
@@ -496,40 +440,25 @@ views:
             name: Телефон
           - entity: sensor.nightscout_pump_battery
             name: Помпа
-
       - type: history-graph
         title: Остаток инсулина
         hours_to_show: 24
         entities:
           - entity: sensor.nightscout_pump_reservoir
             name: Инсулин в помпе
-
       - type: markdown
-        content: |
+        content: >
           ## Информация о системе
 
-          Эта вкладка показывает диагностическую информацию о сервере Nightscout и подключенных устройствах.
+
+          Эта вкладка показывает диагностическую информацию о сервере Nightscout
+          и подключенных устройствах.
+
 
           **Цветовые индикаторы:**
-          - 🟢 Зелёный: всё в порядке
-          - 🟡 Жёлтый: внимание, требуется проверка
-          - 🔴 Красный: критическая проблема, требуется немедленное внимание
 
-# ============================================================================
-# ИНСТРУКЦИЯ ПО УСТАНОВКЕ
-# ============================================================================
-# 
-# 1. В Home Assistant откройте: Настройки → Панели управления
-# 2. Нажмите "+ ДОБАВИТЬ ПАНЕЛЬ УПРАВЛЕНИЯ"
-# 3. Выберите "Новая панель управления"
-# 4. Введите название: "Nightscout Extended"
-# 5. Нажмите на три точки → "Изменить панель управления"
-# 6. Нажмите на три точки → "Редактировать в режиме YAML"
-# 7. Удалите всё содержимое и вставьте этот файл целиком
-# 8. Нажмите "СОХРАНИТЬ"
-#
-# ПРИМЕЧАНИЕ: Для расширенных графиков установите через HACS:
-# - mini-graph-card (для красивых графиков)
-# - apexcharts-card (для сложных диаграмм)
-# - mushroom cards (для современного UI)
-# - expander-card (для сворачиваемых разделов статистики)
+          - 🟢 Зелёный: всё в порядке
+
+          - 🟡 Жёлтый: внимание, требуется проверка
+
+          - 🔴 Красный: критическая проблема, требуется немедленное внимание
