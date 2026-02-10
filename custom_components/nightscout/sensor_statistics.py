@@ -33,6 +33,7 @@ from .defaults import (
     EA1C_REFERENCE_RANGES,
     GVI_REFERENCE_RANGES,
     MEAN_BG_REFERENCE_RANGES,
+    PGS_REFERENCE_RANGES,
     STDEV_REFERENCE_RANGES,
     TIR_REFERENCE_RANGES,
     get_status_color,
@@ -383,12 +384,19 @@ class PGSSensor(StatisticalSensorBase):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return additional attributes."""
         stats = self._get_statistics()
-        return {
+        pgs = stats.get("pgs")
+
+        attrs = {
             ATTR_SAMPLES: stats.get("samples", 0),
             ATTR_MEAN_BG: stats.get("mean_bg"),
             ATTR_STDEV: stats.get("stdev"),
             ATTR_UNIT: stats.get("unit", "mg/dL"),
         }
+
+        if pgs is not None:
+            attrs[ATTR_STATUS_COLOR] = get_status_color(pgs, PGS_REFERENCE_RANGES)
+
+        return attrs
 
 
 class TIRSensor(StatisticalSensorBase):

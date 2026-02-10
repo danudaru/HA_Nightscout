@@ -176,6 +176,32 @@ GVI_REFERENCE_RANGES: Final = {
     },
 }
 
+# PGS (Patient Glycemic Status) Reference Ranges
+PGS_REFERENCE_RANGES: Final = {
+    "excellent": {
+        "max": 35,
+        "color": "green",
+        "description": "Excellent glycemic status (non-diabetic)",
+    },
+    "good": {
+        "min": 35,
+        "max": 100,
+        "color": "lightgreen",
+        "description": "Good glycemic status (diabetic)",
+    },
+    "poor": {
+        "min": 100,
+        "max": 150,
+        "color": "yellow",
+        "description": "Poor glycemic status (diabetic)",
+    },
+    "very_poor": {
+        "min": 150,
+        "color": "red",
+        "description": "Very poor glycemic status (diabetic)",
+    },
+}
+
 # Mean Blood Glucose Reference Ranges (mg/dL)
 MEAN_BG_REFERENCE_RANGES: Final = {
     "target": {
