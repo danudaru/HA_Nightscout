@@ -1,6 +1,6 @@
 # Nightscout Extended Integration для Home Assistant
 
-[![Version](https://img.shields.io/badge/version-2.2.8-blue.svg)](https://github.com/danudaru/HA_Nightscout)
+[![Version](https://img.shields.io/badge/version-2.2.9-blue.svg)](https://github.com/danudaru/HA_Nightscout)
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2023.1+-blue.svg)](https://www.home-assistant.io/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Nightscout](https://img.shields.io/badge/Nightscout-14.x+-purple.svg)](https://nightscout.github.io/)

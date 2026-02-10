@@ -378,6 +378,42 @@ class NightscoutAPI:
                         "duration": enacted["duration"],
                         "timestamp": enacted.get("timestamp"),
                     }
+            if "suggested" in openaps:
+                suggested = openaps["suggested"]
+                if "rate" in suggested and "duration" in suggested:
+                    return {
+                        "rate": suggested["rate"],
+                        "duration": suggested["duration"],
+                        "timestamp": suggested.get("timestamp"),
+                    }
+
+        # Try Loop format
+        if "loop" in status:
+            loop = status["loop"]
+            temp = loop.get("temporaryBasal") or loop.get("tempBasal")
+            if isinstance(temp, dict):
+                rate = temp.get("rate")
+                duration = temp.get("duration") or temp.get("minutes")
+                if rate is not None and duration is not None:
+                    return {
+                        "rate": rate,
+                        "duration": duration,
+                        "timestamp": temp.get("timestamp") or loop.get("timestamp"),
+                    }
+
+        # Try pump format
+        if "pump" in status:
+            pump = status["pump"]
+            temp = pump.get("tempBasal") or pump.get("temporaryBasal") or pump.get("temp")
+            if isinstance(temp, dict):
+                rate = temp.get("rate")
+                duration = temp.get("duration") or temp.get("minutes")
+                if rate is not None and duration is not None:
+                    return {
+                        "rate": rate,
+                        "duration": duration,
+                        "timestamp": temp.get("timestamp") or status.get("created_at"),
+                    }
 
         return None
 
