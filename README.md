@@ -318,7 +318,7 @@ MIT License - см. [LICENSE](LICENSE)
 
 | Entity ID | Описание | Единицы |
 |-----------|----------|---------|
-| `sensor.blood_sugar` | Уровень глюкозы | мг/дл |
+| `sensor.blood_glucose` | Уровень глюкозы | мг/дл или ммоль/л |
 | `sensor.nightscout_insulin_on_board` | Активный инсулин (IOB) | U |
 | `sensor.nightscout_carbs_on_board` | Активные углеводы (COB) | г |
 | `sensor.nightscout_sensitivity_ratio` | Коэффициент чувствительности | - |
@@ -337,6 +337,17 @@ MIT License - см. [LICENSE](LICENSE)
 | `sensor.nightscout_loop_status` | Статус петли | - |
 | `sensor.nightscout_device_status` | Статус устройства | - |
 
+Статистические сенсоры (за каждый период: `24h`, `7d`, `30d`, `90d`):
+- `sensor.mean_bg_[период]`
+- `sensor.median_bg_[период]`
+- `sensor.stddev_[период]`
+- `sensor.cv_[период]`
+- `sensor.gvi_[период]`
+- `sensor.pgs_[период]`
+- `sensor.time_in_range_[период]`
+- `sensor.time_below_range_[период]`
+- `sensor.time_above_range_[период]`
+
 ## Автоматизации
 
 ### Пример 1: Уведомление о низкой глюкозе
@@ -346,13 +357,13 @@ automation:
   - alias: "Низкая глюкоза"
     trigger:
       - platform: numeric_state
-        entity_id: sensor.blood_sugar
+        entity_id: sensor.blood_glucose
         below: 70
     action:
       - service: notify.mobile_app
         data:
           title: "⚠️ Низкая глюкоза!"
-          message: "Уровень глюкозы: {{ states('sensor.blood_sugar') }} мг/дл"
+          message: "Уровень глюкозы: {{ states('sensor.blood_glucose') }} мг/дл"
           data:
             priority: high
             ttl: 0

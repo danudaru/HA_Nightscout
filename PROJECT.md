@@ -207,7 +207,7 @@ eA1c (%) = 3.31 + 0.02392 × [средняя глюкоза в мг/дл]
 
 3. **Проверка сенсоров:**
    - Инструменты разработчика → Состояния
-   - Найти сенсоры `sensor.nightscout_*`
+   - Найти сенсоры `sensor.nightscout_*`, а также `sensor.blood_glucose` и статистические `sensor.mean_bg_*`, `sensor.stddev_*`, `sensor.time_in_range_*`
 
 ---
 
