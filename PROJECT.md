@@ -49,7 +49,7 @@ HA_Nightscout/
 
 1. **Клонировать репозиторий:**
    ```bash
-   git clone https://github.com/yourusername/HA_Nightscout.git
+   git clone https://github.com/danudaru/HA_Nightscout.git
    cd HA_Nightscout
    ```
 
@@ -261,8 +261,8 @@ eA1c (%) = 3.31 + 0.02392 × [средняя глюкоза в мг/дл]
 
 ## 📞 Контакты и поддержка
 
-- **Issues:** [GitHub Issues](https://github.com/yourusername/HA_Nightscout/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/yourusername/HA_Nightscout/discussions)
+- **Issues:** [GitHub Issues](https://github.com/danudaru/HA_Nightscout/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/danudaru/HA_Nightscout/discussions)
 - **Home Assistant Community:** [Community Forum](https://community.home-assistant.io/)
 
 ---

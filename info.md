@@ -56,7 +56,7 @@
 
 ## Документация
 
-Полная документация доступна в [README.md](https://github.com/yourusername/HA_Nightscout/blob/main/README.md)
+Полная документация доступна в [README.md](https://github.com/danudaru/HA_Nightscout/blob/main/README.md)
 
 ---
 

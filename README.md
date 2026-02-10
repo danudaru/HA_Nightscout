@@ -1,6 +1,6 @@
 # Nightscout Extended Integration для Home Assistant
 
-[![Version](https://img.shields.io/badge/version-2.2.5-blue.svg)](https://github.com/danudaru/HA_Nightscout)
+[![Version](https://img.shields.io/badge/version-2.2.7-blue.svg)](https://github.com/danudaru/HA_Nightscout)
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2023.1+-blue.svg)](https://www.home-assistant.io/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Nightscout](https://img.shields.io/badge/Nightscout-14.x+-purple.svg)](https://nightscout.github.io/)
@@ -151,7 +151,7 @@ custom_components/nightscout/
 - `sensor.nightscout_pump_battery` - Заряд помпы
 - `sensor.nightscout_phone_battery` - Заряд телефона
 
-Полный список: **60+ сенсоров**
+Полный список: **99+ сенсоров**
 
 ## ⚙️ Настройка параметров
 
@@ -479,7 +479,7 @@ eA1c (%) = 3.31 + 0.02392 × [средняя глюкоза в мг/дл]
 ### Сообщить о проблеме
 
 Если вы обнаружили ошибку или у вас есть предложение:
-1. Проверьте существующие [Issues](https://github.com/yourusername/HA_Nightscout/issues)
+1. Проверьте существующие [Issues](https://github.com/danudaru/HA_Nightscout/issues)
 2. Создайте новый Issue с подробным описанием
 3. Приложите логи, если возможно
 
