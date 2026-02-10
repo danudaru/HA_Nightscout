@@ -48,21 +48,34 @@ views:
           - entity: sensor.nightscout_phone_battery
             name: Заряд телефона
 
-      - type: horizontal-stack
-        cards:
-          - type: entities
-            title: Time in Range (24ч)
-            state_color: true
-            entities:
-              - entity: sensor.time_in_range_24h
-                name: В целевом диапазоне
-                icon: mdi:target
-              - entity: sensor.time_below_range_24h
-                name: Ниже целевого
-                icon: mdi:arrow-down-bold
-              - entity: sensor.time_above_range_24h
-                name: Выше целевого
-                icon: mdi:arrow-up-bold
+      - type: custom:apexcharts-card
+        chart_type: bar
+        header:
+          show: true
+          title: Time in Range (90д)
+        series:
+          - entity: sensor.time_in_range_90d
+            name: В целевом диапазоне
+            color: "#43a047"
+          - entity: sensor.time_below_range_90d
+            name: Ниже целевого
+            color: "#e53935"
+          - entity: sensor.time_above_range_90d
+            name: Выше целевого
+            color: "#fbc02d"
+        apex_config:
+          chart:
+            stacked: true
+            stackType: "100%"
+          plotOptions:
+            bar:
+              horizontal: true
+          dataLabels:
+            enabled: true
+          xaxis:
+            max: 100
+          yaxis:
+            show: false
 
       - type: horizontal-stack
         cards:
@@ -70,12 +83,115 @@ views:
             chart_type: radialBar
             header:
               show: true
-              title: CV (24ч)
+              title: StdDev (90д)
             series:
-              - entity: sensor.cv_24h
+              - entity: sensor.stddev_90d
+                name: StdDev
+                max: 100
+                color_threshold:
+                  - value: 50
+                    color: "#43a047"
+                  - value: 70
+                    color: "#fbc02d"
+                  - value: 100
+                    color: "#e53935"
+            apex_config:
+              plotOptions:
+                radialBar:
+                  startAngle: -90
+                  endAngle: 90
+                  hollow:
+                    size: "60%"
+                  dataLabels:
+                    name:
+                      show: false
+                    value:
+                      show: true
+              stroke:
+                lineCap: round
+
+      - type: horizontal-stack
+        cards:
+          - type: custom:apexcharts-card
+            chart_type: radialBar
+            header:
+              show: true
+              title: eA1c (90д)
+            series:
+              - entity: sensor.nightscout_ea1c_90d
+                name: eA1c
+                max: 12
+                unit: "%"
+                color_threshold:
+                  - value: 7.0
+                    color: "#43a047"
+                  - value: 8.0
+                    color: "#fbc02d"
+                  - value: 12
+                    color: "#e53935"
+            apex_config:
+              plotOptions:
+                radialBar:
+                  startAngle: -90
+                  endAngle: 90
+                  hollow:
+                    size: "60%"
+                  dataLabels:
+                    name:
+                      show: false
+                    value:
+                      show: true
+              stroke:
+                lineCap: round
+          - type: custom:apexcharts-card
+            chart_type: radialBar
+            header:
+              show: true
+              title: PGS (90д)
+            series:
+              - entity: sensor.pgs_90d
+                name: PGS
+                max: 200
+                color_threshold:
+                  - value: 35
+                    color: "#43a047"
+                  - value: 100
+                    color: "#7cb342"
+                  - value: 150
+                    color: "#fbc02d"
+                  - value: 200
+                    color: "#e53935"
+            apex_config:
+              plotOptions:
+                radialBar:
+                  startAngle: -90
+                  endAngle: 90
+                  hollow:
+                    size: "60%"
+                  dataLabels:
+                    name:
+                      show: false
+                    value:
+                      show: true
+              stroke:
+                lineCap: round
+          - type: custom:apexcharts-card
+            chart_type: radialBar
+            header:
+              show: true
+              title: CV (90д)
+            series:
+              - entity: sensor.cv_90d
                 name: CV
                 max: 70
                 unit: "%"
+                color_threshold:
+                  - value: 36
+                    color: "#43a047"
+                  - value: 50
+                    color: "#fbc02d"
+                  - value: 70
+                    color: "#e53935"
             apex_config:
               plotOptions:
                 radialBar:
@@ -90,22 +206,22 @@ views:
                       show: true
               stroke:
                 lineCap: round
-            color_threshold:
-              - value: 36
-                color: "#43a047"
-              - value: 50
-                color: "#fbc02d"
-              - value: 70
-                color: "#e53935"
           - type: custom:apexcharts-card
             chart_type: radialBar
             header:
               show: true
-              title: GVI (24ч)
+              title: GVI (90д)
             series:
-              - entity: sensor.gvi_24h
+              - entity: sensor.gvi_90d
                 name: GVI
                 max: 2.0
+                color_threshold:
+                  - value: 1.2
+                    color: "#43a047"
+                  - value: 1.5
+                    color: "#fbc02d"
+                  - value: 2.0
+                    color: "#e53935"
             apex_config:
               plotOptions:
                 radialBar:
@@ -120,45 +236,6 @@ views:
                       show: true
               stroke:
                 lineCap: round
-            color_threshold:
-              - value: 1.2
-                color: "#43a047"
-              - value: 1.5
-                color: "#fbc02d"
-              - value: 2.0
-                color: "#e53935"
-          - type: custom:apexcharts-card
-            chart_type: radialBar
-            header:
-              show: true
-              title: PGS (24ч)
-            series:
-              - entity: sensor.pgs_24h
-                name: PGS
-                max: 200
-            apex_config:
-              plotOptions:
-                radialBar:
-                  startAngle: -90
-                  endAngle: 90
-                  hollow:
-                    size: "60%"
-                  dataLabels:
-                    name:
-                      show: false
-                    value:
-                      show: true
-              stroke:
-                lineCap: round
-            color_threshold:
-              - value: 35
-                color: "#43a047"
-              - value: 100
-                color: "#7cb342"
-              - value: 150
-                color: "#fbc02d"
-              - value: 200
-                color: "#e53935"
 
   # ============================================================================
   # ВКЛАДКА 2: ПОДРОБНАЯ ИНФОРМАЦИЯ И ГРАФИКИ
