@@ -192,6 +192,18 @@ custom_components/nightscout/
 - Остаток инсулина
 - Информация о системе
 
+### Компактная карточка глюкозы (HACS)
+
+Если нужна отдельная карточка текущих показаний без полной панели, интеграция из коробки совместима с [SugarTV Card](https://github.com/wiltodelta/homeassistant-sugartv-card) (доступна в HACS Default). Карточка сама читает тренд из атрибута `direction` и может показывать активный инсулин:
+
+```yaml
+type: custom:sugartv-card
+glucose_value: sensor.blood_glucose
+insulin_value: sensor.nightscout_insulin_on_board # необязательно
+```
+
+![SugarTV Card в широком и вертикальном слоте](https://raw.githubusercontent.com/wiltodelta/homeassistant-sugartv-card/v0.22.0/sugartv-card-layouts.png)
+
 ## 📈 Референсные значения
 
 Все показатели имеют встроенные референсные диапазоны с цветовой индикацией:
